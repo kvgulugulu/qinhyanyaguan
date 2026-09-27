@@ -482,6 +482,57 @@ header{
 .help-h{font-size:12.5px;font-weight:700;color:var(--brand,#8d4a2a);margin-bottom:4px;letter-spacing:.02em;}
 .help-b{font-size:12px;line-height:1.68;color:var(--ink-2,#4a3f35);}
 .help-b b{color:#8d4a2a;font-weight:600;}
+
+/* ===== V4 剧情折叠（个人好感剧情加长后，改为逐段点击展开） ===== */
+.story-fold{padding:0;overflow:hidden;}
+.story-fold-head{display:flex;align-items:flex-start;gap:6px;padding:10px 11px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;user-select:none;}
+.story-fold-head:active{background:rgba(140,93,68,.05);}
+.story-fold-arrow{flex:0 0 auto;font-size:11px;color:#a58a70;line-height:1.6;transition:transform .15s;}
+.story-fold-open .story-fold-arrow{color:#8c5d44;}
+.story-fold-name{flex:1 1 auto;min-width:0;font-size:13px;font-weight:bold;color:#8c5d44;line-height:1.6;}
+.story-fold-body{padding:0 11px 11px;border-top:1px dashed rgba(176,142,86,.28);margin-top:0;padding-top:9px;}
+.story-fold-body .story-body{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.story-tools{display:flex;gap:8px;margin-top:8px;}
+
+/* ===== V4 剧情图鉴（手记页） ===== */
+.codex-group{margin-top:10px;}
+.codex-group:first-child{margin-top:2px;}
+.codex-sub{font-size:12px;font-weight:600;color:#8c5d44;margin:8px 0 4px;letter-spacing:.02em;}
+.codex-row{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;
+    background:rgba(140,120,98,.05);margin-bottom:5px;}
+.codex-row:last-child{margin-bottom:0;}
+.codex-row.codex-done{background:rgba(90,130,80,.08);}
+.codex-row.codex-open{background:rgba(184,121,42,.09);}
+.codex-name{flex:1 1 auto;min-width:0;font-size:12.5px;color:var(--ink-2,#4a3f35);line-height:1.55;}
+.codex-row.codex-locked .codex-name{color:var(--ink-4,#9c8b78);}
+.codex-who{font-size:11px;color:var(--ink-4,#9c8b78);margin-left:2px;}
+.codex-body{margin:2px 0 8px;padding:9px 11px;border-radius:8px;background:var(--card,#fffdf9);
+    border:1px dashed rgba(176,142,86,.35);font-size:12.5px;line-height:1.75;color:#3a3a3a;
+    white-space:pre-wrap;max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+/* ===== 最后一轮：市集涨跌显示 ===== */
+.market-row{align-items:center;flex-wrap:wrap;row-gap:4px;}
+.market-base{color:var(--ink-4,#9c8b78);font-size:11px;}
+.price-dir{display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;
+    padding:1px 7px;border-radius:var(--r-pill);margin-left:8px;white-space:nowrap;}
+/* 上涨 = 红、下跌 = 绿（沿用中式行情配色）；同时用 ↑/↓ 符号，不单靠颜色传达 */
+.price-dir.price-up{color:#a84237;background:rgba(177,69,58,.12);}
+.price-dir.price-down{color:#3f7d52;background:rgba(63,125,82,.12);}
+.price-dir.price-flat{color:var(--ink-3,#7d6f60);background:rgba(140,130,118,.10);font-weight:500;}
+/* 待播放态：条件已满足、后台已登记，只等播放时机（比"可触发"更明确） */
+.codex-row.codex-pending{background:rgba(47,108,174,.10);}
+.tag.tag-blue2{background:rgba(47,108,174,.12);color:#2f6cae;border-color:rgba(47,108,174,.3);}
+
+/* ===== 最后一轮：新手教程 ===== */
+/* 教程弹窗比普通机制说明稍宽裕些：条目多、要能滚动、字号略放大便于新手上手 */
+#tutorialMask .modal.modal-help{max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#tutorialMask .help-h{font-size:13px;}
+#tutorialMask .help-b{font-size:12.5px;line-height:1.78;}
+#tutorialMask .help-row{background:rgba(138,90,60,.055);border-left-color:rgba(176,142,86,.62);}
+/* 顶部「教程」按钮：给一点点强调，让新手一眼看到 */
+#btnTutorial{color:var(--brand,#8a5a3c);border-color:rgba(176,142,86,.5);background:rgba(176,142,86,.10);}
+#btnTutorial:active{background:rgba(176,142,86,.24);}
 </style>
 </head>
 <body>
@@ -490,6 +541,7 @@ header{
     <div class="header-row">
         <div class="title-text">清晏雅馆</div>
         <div class="header-btns">
+            <button id="btnTutorial" class="btn btn-gray btn-xs">教程</button>
             <button id="btnSave" class="btn btn-gray btn-xs">存档</button>
             <button id="btnReset" class="btn btn-gray btn-xs">重开</button>
             <button id="btnDevClearStorage" class="btn btn-gray btn-xs header-btns-extra">清档</button>
@@ -676,6 +728,14 @@ header{
         <div class="modal-btn-group" id="hModBtns"></div>
     </div>
 </div>
+<!-- ★ 最后一轮新增：新手教程弹窗。开场剧情关闭后自动弹出一次；顶部「教程」按钮可随时重看 -->
+<div id="tutorialMask" class="mask mask-hidden">
+    <div class="modal modal-help">
+        <div class="modal-title" id="tutTitle"></div>
+        <div class="modal-desc" id="tutDesc"></div>
+        <div class="modal-btn-group" id="tutBtns"></div>
+    </div>
+</div>
 
 <nav class="tab-bar">
     <div class="tab-item active" data-page="yard">雅馆</div>
@@ -737,18 +797,21 @@ const characterData = [
         relationship:{su:"neutral",lu:"neutral",wen:"neutral",gu:"neutral",xie:"neutral"},
         unlockStory:"他来的时候没有惊动任何人。\n\n你是在琴室找到他的——那时他已经把馆里那张旧琴从头到尾调了一遍，弦轴擦得干净，连琴案上的灰都拂过了。听见脚步声，他也没回头，只问了一句：\n\n「这里，还缺一位抚琴的人么？」\n\n你说是。他这才转过身来，拱手行了个礼，自报姓名：沈清寒。",
         storyTexts:{
-            s1:"【沈清寒·初见】客人散尽之后，他独自留在琴边，一根根整理琴弦。他并不多言语，却会默默把雅馆之中细碎之事做好。",
-            s2:"【沈清寒·雨夜】暴雨敲打着檐角，没有客人登门。檐下避雨之时，他才缓缓说起当年为何守着这座空馆。心中所守，不过旧人留下的一句嘱托。",
-            s3:"【沈清寒·旧曲】夜深，他拨动那支尘封已久的旧曲。琴声沉郁，那是旧雅馆出事那一晚响起过的调子。往事随乐声缓缓浮出。",
-            s4:"【沈清寒·归处】你问他，如果雅馆不复存在，他会去往何方。他沉默片刻，低声答道：从前觉得世间何处都一样，如今……这里，便是归处。解锁特殊接待「夜下听琴」。",
-            s5:"【沈清寒·修琴】那张旧琴的雁足松了。他拆下来，用小刀一点点削了新木补上，磨到与旧木同色。你问他为何不换一张新的，他说：\n\n「新琴有新的声音，旧琴有旧的。它陪过的人不在了，声音还在。」\n\n他把琴推到你面前，让你按一按。弦音沉，像有人隔着很多年，轻轻应了一声。"
+            s1:"【沈清寒·无声的夜】雅馆刚刚重新开张，沈清寒便独自留在琴室整理旧琴。\n\n你发现他不仅将琴弦调得恰到好处，连琴案上的灰尘也擦得一干二净。你问他为何如此认真，他只说既然收了雅馆的工钱，便该把分内之事做好。\n\n你随口问他，若是哪天雅馆不再需要琴师，他又打算去哪里。\n\n他手上的动作停了一瞬。\n\n「那便去别处。」\n\n他说得平静，仿佛早已习惯这样的事情。\n\n你没有继续追问，只是让他安心住下。临走前，他忽然叫住你。\n\n「馆主。」\n\n「怎么了？」\n\n「琴室的窗户有些漏风，明日我会修好。」\n\n你这才发现，他似乎总是习惯用做事来代替回答。",
+            s2:"【沈清寒·雨夜旧事】一场暴雨困住了雅馆的客人。沈清寒在琴室抚琴，琴声却比平日沉闷许多。\n\n你发现他面前摆着一张旧琴，琴身已经有些磨损，似乎被保存了很多年。\n\n谈话间，你得知这张琴是上一代馆主留下的。\n\n当年雅馆尚且兴盛时，馆主曾经答应过他，会让他在这里安心抚琴，不必再受旁人摆布。\n\n后来旧馆关闭，其他人陆续离开，唯独沈清寒仍旧守着这张琴。\n\n你问他，难道只是为了履行一句承诺？\n\n他沉默许久。\n\n「他待我有恩。」\n\n「所以你便一直留在这里？」\n\n「……是。」\n\n窗外雨声渐密。他低头拨弄琴弦，像是不愿再谈下去。\n\n你没有劝他离开，只是告诉他，雅馆如今已经重新开张，他不必再一个人守着过去。\n\n他没有回答，却在你离开时，第一次主动为你弹了一曲。",
+            s3:"【沈清寒·旧曲未终】某日，你在整理旧物时，发现一本残缺的曲谱。\n\n曲谱上的墨迹已经模糊，但沈清寒只看了一眼，便认出了它。\n\n那是旧馆关闭前的最后一夜，他曾经弹奏过的曲子。\n\n你原以为那晚只是一次普通的送别，直到沈清寒告诉你，那天有位贵客提出要带走馆中几人，条件是让上一代馆主交出雅馆。\n\n馆主拒绝了。\n\n那一夜，沈清寒弹了一整晚的琴。直到天亮，雅馆的人陆续离开，他才知道，馆主已经决定关门。\n\n「你恨他吗？」你问。\n\n沈清寒摇头。\n\n「我只是……不知道那一晚，若我能说些什么，会不会不一样。」\n\n他重新拿起曲谱，却始终没有弹下去。\n\n你告诉他，过去的事情已经无法改变，但至少现在，他不必再独自承担所有遗憾。\n\n这一次，他没有反驳。",
+            s4:"【沈清寒·不必为谁而奏】雅馆准备举办一场雅集，沈清寒却拒绝了客人指定的曲目。\n\n那是一首旧馆时期常被要求演奏的曲子。\n\n你问他是否有什么难言之隐，他只说不想弹。\n\n这是他第一次如此明确地拒绝客人。\n\n你担心此事影响雅馆声誉，他却主动提出，可以换一首曲子。\n\n雅集当晚，他弹奏了一首从未有人听过的新曲。\n\n曲终后，众人纷纷称赞。沈清寒却没有露出往日那般礼貌而疏离的神情，只是看向你。\n\n「这首曲子，是我自己想弹的。」\n\n你问他，这首曲子叫什么。\n\n他想了想。\n\n「还没有名字。」\n\n他终于开始明白，留在雅馆并不意味着必须永远遵循过去的约定。",
+            s5:"【沈清寒·旧琴新弦】旧琴的雁足松动了。\n\n沈清寒花了整整两日修理，连吃饭都顾不上。你劝他换一张新琴，他却坚持要修好。\n\n你问他，既然旧馆已经不在了，为何还要如此珍惜这张琴。\n\n他没有立刻回答。\n\n直到琴修好，他才缓缓说道：\n\n「以前觉得，守着这张琴，便算是守住了那个人留下的东西。」\n\n「现在呢？」\n\n「现在……我想继续弹下去。」\n\n他将琴推到你面前，示意你试试琴弦。\n\n「以后若是有机会，我想弹些从未弹过的曲子。」\n\n这句话说得很轻，却是他第一次主动谈起自己的以后。"
         },
         storyTrig:{
+            // ★ V40 修复：按《人物好感剧情解锁条件调整案》放宽解锁门槛。
+            //   统一节奏：一段 好感20 / 二段 好感40 + 一次日常互动 / 三段 好感60 + 线索或第三章 / 四段 好感80 + 后段章节。
+            //   原则：好感是主要门槛，每段最多一个轻量条件；不再依赖指定雅会、稀有随机事件。
             s1:{favor:20,cond:[]},
-            s2:{favor:50,cond:[{type:"receptionCount",key:"qin",val:3}]},
-            s3:{favor:80,cond:[{type:"eventFlag",key:"nightQin",val:true}]},
-            s4:{favor:100,cond:[{type:"chapter",val:4}]},
-            s5:{favor:85,cond:[{type:"buildingLv",key:"tingqin",val:1}]}
+            s2:{favor:40,cond:[{type:"interactAtLeast",key:"shen",val:1}]},
+            s3:{favor:60,cond:[{type:"chapter",val:3}]},
+            s4:{favor:80,cond:[{type:"chapter",val:4}]},
+            s5:{favor:85,cond:[{type:"chapterAtLeast",val:4}]}
         }
     },
     {
@@ -764,18 +827,20 @@ const characterData = [
         relationship:{shen:"neutral",lu:"neutral",wen:"neutral",gu:"neutral",xie:"neutral"},
         unlockStory:"他是被人点着名请来的。\n\n进门时先笑，眉眼弯着，绕着庭院走了半圈，把每一处摆设都看了一遍，最后一屁股坐进廊下最好的那张椅子，说这地方比他想的要好。\n\n「苏砚辞。」他自报家门，又补一句，「跳舞的。放心，我不吵——除非客人想吵。」\n\n说完他自己先笑了。",
         storyTexts:{
-            s1:"【苏砚辞·初见】因客人点名而来，言辞灵动，眉眼带笑，句句都带着几分戏谑，一眼便能看穿旁人情绪。",
-            s2:"【苏砚辞·醉后】宴席散后，他微醺，方才卸下嬉皮笑脸。低声吐露心中最大恐惧：最怕被人强行安排命运。转天却装作昨夜什么都未曾说过。",
-            s3:"【苏砚辞·故人】旧识远道而来，勾起他尘封记忆。当年有人挣脱枷锁远走高飞，他内心实则满心羡慕。",
-            s4:"【苏砚辞·花灯】花灯夜宴灯火璀璨。他坦然说出：我愿意留下，但留下，是我自己选的。解锁雅会「花灯夜宴」。",
-            s5:"【苏砚辞·衣箱】他翻出一只旧衣箱，箱底压着一件跳旧的舞衣，肩线磨得发亮。他拿出来抖了抖，说这是当年走江湖时穿的。\n\n「那时候一身行头就是全部家当，走到哪儿算哪儿。」他把舞衣叠好，却又没舍得放回箱底，摆在了最上面一格。\n\n「现在有地方放了。」他说得很轻。"
+            s1:"【苏砚辞·旧衣箱】苏砚辞是被客人点名请来的。\n\n他刚进雅馆便四处打量，嘴上夸着庭院布置得不错，转头又嫌茶水太淡。\n\n你问他是否愿意留下，他笑着答应，却特意补充了一句：\n\n「先说好，我可不保证待多久。」\n\n你以为他只是随口玩笑，直到后来整理他的住处，发现他随身带着一只旧衣箱。\n\n箱子里除了几件舞衣，几乎什么也没有。\n\n你问他为何不多带些东西，他笑着说，东西带多了，离开的时候麻烦。\n\n你没有追问。\n\n只是那天晚上，你发现他把原本放在门边的衣箱，挪到了床底。",
+            s2:"【苏砚辞·醉后失言】一次宴席结束后，苏砚辞喝得有些醉。\n\n他平日里总是笑着说话，今晚却难得安静。\n\n你问他是不是遇到了什么烦心事，他先是笑着搪塞，随后忽然问：\n\n「馆主，你觉得一个人能不能自己决定要去哪里？」\n\n你说当然可以。\n\n他却摇了摇头。\n\n「有时候，别人会告诉你，哪里才是你的去处。」\n\n他没有继续说下去，只是将酒杯放在桌上。\n\n你隐约意识到，他过去或许并不像表面上那样自由。\n\n第二天，他又恢复了平日里嬉笑的模样，仿佛昨晚什么都没有发生。",
+            s3:"【苏砚辞·故人来信】一封来自旧识的信送到了雅馆。\n\n苏砚辞看完后，难得没有说笑。\n\n信中提到，那位旧识已经离开了过去的生活，如今在别处安顿下来，还邀请苏砚辞一同前往。\n\n你问他是否打算离开。\n\n他笑着反问：「馆主这是舍不得我？」\n\n你没有回答。\n\n他也没有再开玩笑，只是将信折好，收进了衣箱。\n\n几日后，你发现他开始频繁练舞，甚至主动提出要为雅集准备一支新舞。\n\n你问他是不是已经有了决定。\n\n他只说：「还没想好。」\n\n但你发现，他已经很久没有再提起离开的事情。",
+            s4:"【苏砚辞·花灯夜】雅馆举办花灯夜宴，苏砚辞负责领舞。\n\n他跳得格外尽兴，连平日里不爱热闹的沈清寒也被他拉来合奏。\n\n一曲结束，众人仍意犹未尽。\n\n散场后，你在庭院里找到苏砚辞。他正拿着一盏花灯，站在廊下发呆。\n\n你问他在想什么。\n\n「在想，我以前怎么就没发现，原来留下来也挺有意思。」\n\n你笑着问他，难道现在才发现？\n\n他转过头，笑容里少了几分平日里的戏谑。\n\n「以前我总觉得，留下来就意味着欠了谁什么。」\n\n「现在呢？」\n\n「现在我想留下，是因为我自己愿意。」",
+            s5:"【苏砚辞·留下的人】苏砚辞整理衣箱时，翻出了一件旧舞衣。\n\n那是他刚开始学舞时穿的，肩线已经磨得发亮。\n\n他原本打算将它丢掉，却在最后关头停了下来。\n\n你问他为什么不扔。\n\n他笑着说，这可是他当年走南闯北的全部家当。\n\n你帮他把衣箱收拾好，发现里面已经多了不少东西：几本书、一只茶盏，还有雅馆举办雅集时留下的花灯。\n\n苏砚辞看着这些东西，忽然笑了。\n\n「馆主，你说我是不是变了？」\n\n你说，人总会变。\n\n他点点头，将旧舞衣叠好，放在了箱子的最上面。\n\n「那就留着吧。以后说不定还能穿。」\n\n他没有再提离开的事。"
         },
         storyTrig:{
+            // ★ V40 修复：苏砚辞二段改为普通互动（夜谈仅作氛围表现，不作硬门槛）；
+            //   三段移除低概率「旧识来信」(suOldFriend) 硬依赖，改为好感60 + 一次日常互动。
             s1:{favor:20,cond:[]},
-            s2:{favor:50,cond:[{type:"time",key:"night",val:true}]},
-            s3:{favor:80,cond:[{type:"eventFlag",key:"suOldFriend",val:true}]},
-            s4:{favor:100,cond:[{type:"meetDone",key:"huaDeng",val:true}]},
-            s5:{favor:85,cond:[{type:"totalReception",val:14}]}
+            s2:{favor:40,cond:[{type:"interactAtLeast",key:"su",val:1}]},
+            s3:{favor:60,cond:[{type:"interactAtLeast",key:"su",val:1}]},
+            s4:{favor:80,cond:[{type:"chapter",val:4}]},
+            s5:{favor:85,cond:[{type:"chapterAtLeast",val:4}]}
         }
     },
     {
@@ -791,18 +856,21 @@ const characterData = [
         relationship:{shen:"neutral",su:"neutral",wen:"neutral",gu:"neutral",xie:"neutral"},
         unlockStory:"他进门时手里抱着一卷画，画纸上还带着一路的风尘。\n\n他没有急着说话，先抬头把庭院看了一遍，从檐角看到墙根，最后目光落在雨后那片湿漉漉的窗沿上，停了一会儿。\n\n「这一处，画下来会很好看。」他说。\n\n然后才想起要自我介绍——陆星遥，画画的。他说得很轻，像怕惊了院子里这点安静。",
         storyTexts:{
-            s1:"【陆星遥·画中人】他默默将雅馆日常景象绘入画卷，旁观馆中人来人往，习惯以笔墨记录世间百态。",
-            s2:"【陆星遥·旧卷】一卷旧画现世，乃是他老师遗作，画中藏着与旧清晏雅馆相关的往事。",
-            s3:"【陆星遥·落款】旧画上有一处人物被人刻意抹去，顺着画中线索，可以窥见当年的纠葛。",
-            s4:"【陆星遥·长留】他完成一幅全景长卷，雅馆众人尽数入画，亲手落下属于自己的落款。解锁庭院特殊装扮。",
-            s5:"【陆星遥·画稿被退】他把一卷新画送到画坊，隔了两日被人原封退回，只说「与市面所好不合」。他拆开看了一遍，什么也没说，把画卷收进柜里。\n\n过了半晌，他才开口：「他们想要热闹的。」\n\n「那你画什么？」你问。他把笔浸了墨，说：「我画这里下雨的时候。」"
+            s1:"【陆星遥·画中人】陆星遥初到雅馆时，最常待的地方便是画室。馆中人来来往往，他却总能在不经意间记住每个人的习惯：沈清寒擦琴时会先擦琴案的左侧，苏砚辞练舞前总要把袖口挽起，温如玉泡茶时从不让水声惊扰旁人。\n\n某日，你看见他将新画挂在墙上。画中是雅馆初春的庭院，廊下有人，窗边有茶，远处还有一抹琴室的影子。\n\n你看了许久，才发现画里唯独没有陆星遥自己。\n\n「怎么不把自己也画进去？」\n\n他似乎没想到你会问，握笔的手停了一下。\n\n「我在画外，也看得清楚些。」\n\n他说得温和，像是在解释一件再平常不过的事。你却觉得，他似乎早已习惯站在旁边，替别人留下模样。",
+            s2:"【陆星遥·旧卷】整理画室时，陆星遥从一叠旧纸中找出几张残破的画稿。纸张已经泛黄，边缘还有被水浸过的痕迹。\n\n他原本只当是旧馆留下的杂物，直到看见画中一处熟悉的窗棂，才意识到那是旧馆尚未关闭时的庭院。\n\n画稿没有落款，只有角落里一枚模糊的印记。\n\n陆星遥将画稿摊在桌上，反复比对着画中的细节。你问他是否认得作画的人，他摇了摇头，只说这幅画不像是为了给客人看的。\n\n「那像是画给谁的？」\n\n他没有回答，只把画稿仔细夹进册页里。\n\n那天之后，他开始主动寻找旧馆留下的画卷，不再只是把它们当作需要整理的旧物。",
+            s3:"【陆星遥·落款】陆星遥终于在一幅旧画背面找到了半枚落款。墨迹被刮去大半，只剩下一个不完整的字。\n\n他将画拿给顾行舟辨认。顾行舟从旧账里找出当年购置纸墨的记录，确认画作确实出自旧馆最后几年，却无法凭一枚残缺的字判断作者。\n\n陆星遥有些失望，却没有像从前那样将画收起来。他把画重新铺开，指着画中一处不起眼的细节：窗边摆着两只茶盏，其中一只始终没有被动过。\n\n温如玉看过后，认出那是上一代馆主常用的茶盏。\n\n几条线索终于连在一起。陆星遥第一次发现，自己擅长的观察或许真的能帮助众人理解旧馆的过去。",
+            s4:"【陆星遥·画稿被退】雅馆准备制作一批新的雅集请柬，陆星遥主动画了一幅庭院图。画稿送去后，却被负责印制的人退了回来。对方认为画面太淡，不够醒目，也不适合吸引客人。\n\n陆星遥没有争辩，只将画稿收回画室。你发现他接连几日都没有再动笔。\n\n你问他是否打算重画，他说会照着对方的要求修改。\n\n「可你喜欢原来的那幅吗？」\n\n他沉默了很久，才轻轻点头。\n\n你没有替他决定，只让他自己想清楚究竟想画什么。数日后，他交出第二幅画稿：色彩依旧清淡，却在庭院深处添了一盏灯。\n\n这一次，他没有先问别人是否满意。",
+            s5:"【陆星遥·长留】陆星遥将整理好的旧画与新画并排挂在画室里。旧画记录着旧馆最后的日子，新画则画着如今的雅馆。两幅画之间留着一段空白，像是尚未落笔的年月。\n\n你问他为何不把空白补上。\n\n他看着画纸，终于说起自己一直以来的顾虑：他总觉得画下某个人，便像是替那个人决定了模样；而把自己画进去，又像是承认自己也有被人记住的愿望。\n\n「如今呢？」你问。\n\n陆星遥拿起笔，在新画的角落落下自己的名字。\n\n「如今我想试着留下自己的名字。画得好不好，至少是我自己选的。」\n\n他没有说自己一定会永远留在雅馆，只说往后的画，他想亲手决定要画什么、为谁而画。"
         },
         storyTrig:{
+            // ★ V40 修复：陆星遥二段移除「春日文会」(springWen) 硬条件，改为好感40 + 已结识；
+            //   三段移除旧卷随机事件 (oldScroll) 硬依赖，改为好感60 + 主线第三章。
+            //   春日文会仍作为普通雅会内容保留，不再阻挡人物好感剧情。
             s1:{favor:20,cond:[]},
-            s2:{favor:50,cond:[{type:"meetDone",key:"springWen",val:true}]},
-            s3:{favor:80,cond:[{type:"eventFlag",key:"oldScroll",val:true}]},
-            s4:{favor:100,cond:[{type:"chapter",val:4}]},
-            s5:{favor:85,cond:[{type:"receptionCount",key:"paint",val:6}]}
+            s2:{favor:40,cond:[{type:"metChar",key:"lu",val:true}]},
+            s3:{favor:60,cond:[{type:"chapter",val:3}]},
+            s4:{favor:80,cond:[{type:"chapter",val:4}]},
+            s5:{favor:85,cond:[{type:"chapterAtLeast",val:4}]}
         }
     },
     {
@@ -818,18 +886,20 @@ const characterData = [
         relationship:{shen:"neutral",su:"neutral",lu:"neutral",gu:"neutral",xie:"neutral"},
         unlockStory:"他来的时候是清晨，茶灶刚生起火。\n\n你没吩咐什么，他只是走过来，看了一遍壶、水、盏，然后挽起袖子，把整套茶具重新摆了一遍——位置比原来更顺手，也更顺眼。\n\n第一盏茶递到你面前时，他说了自己的名字：温如玉。\n\n「茶这东西，不必贵。」他说，「但要有人肯等水开。」",
         storyTexts:{
-            s1:"【温如玉·茶香】煮茶之间，便点破雅馆诸多细小隐患。阅人无数，很多事看在眼里，却不会轻易干预。",
-            s2:"【温如玉·旧盏】一套陈旧茶盏摆上案头，是上一代馆主留下的器物，承载许多旧时光。",
-            s3:"【温如玉·夜谈】夜深煮茶闲谈，他向你道出当年贵客到访的旧事，抛出尖锐问题：若那人再次登门，你会如何抉择。",
-            s4:"【温如玉·新茶】他换下那套旧茶盏。不必困守过往，新的茶汤，该由今人亲手沏出。解锁接待「长夜茶叙」。",
-            s5:"【温如玉·茶盏裂纹】新换的茶盏有一只在盏底裂了一道细纹，注水不显，滚水一冲才渗出来。他盯着看了很久。\n\n「物件有伤，不一定要弃。」他取来漆，顺着裂纹描了一道金线。裂处反倒比原先好看。\n\n「你瞧，」他把盏推到灯下，「它记得自己碎过。」"
+            s1:"【温如玉·茶香】温如玉每日清晨都会先到茶室。水温、茶叶、茶具，他总能安排得妥妥当当。即便馆中事务繁忙，他也很少显出慌乱，仿佛只要有他在，所有事情都能慢慢理顺。\n\n某日，你发现他泡好茶后并没有立即饮用，而是先将茶盏送去了几处房间。等他回到茶室，茶已经凉了。\n\n你让他重新泡一盏，他却笑着说不必浪费。\n\n「总这样顾着别人，自己不觉得累吗？」\n\n温如玉怔了怔，随即仍是温和地笑了。\n\n「习惯了。」\n\n你没有再劝，只把那盏凉茶换成了热的。那天，他终于坐下来，慢慢喝完了一盏茶。",
+            s2:"【温如玉·旧盏】温如玉收拾茶柜时，找出一只边缘有细小缺口的旧茶盏。他没有将它丢弃，而是用软布仔细擦拭，放在最里侧的架子上。\n\n你问起这只茶盏的来历，他说那是旧馆时期上一代馆主常用的器物。旧馆关闭前，馆主曾在茶室与他谈过一次话，问他是否愿意离开。\n\n「我当时怎么回答的？」温如玉轻轻笑了笑，「我说，等馆里的人都安顿好了再说。」\n\n可后来，他一直没有等到那个所谓合适的时机。\n\n他将茶盏放回原处，神情仍旧平静。你却意识到，他并非没有自己的打算，只是总把它排在所有人的事情之后。",
+            s3:"【温如玉·夜谈】一夜忙到很晚，温如玉仍在茶室核对次日要用的茶叶。你经过时，见他对着一张旧纸出神。纸上记着旧馆最后一段日子的茶水安排，几处字迹被反复涂改。\n\n他告诉你，那时贵客曾派人来谈条件，话里话外都在打听馆中人的去向。上一代馆主没有答应，温如玉也曾劝他再考虑一晚。\n\n「我那时想的是，若能多争取些时间，也许大家就不必分开。」\n\n你问他后来是否后悔。\n\n他沉默片刻，说自己至今仍不确定当时有没有更好的办法。但他渐渐明白，替别人安排好一切，并不等于真正尊重他们的选择。\n\n说完，他把旧纸收好，第一次主动谈起自己想过怎样的日子。",
+            s4:"【温如玉·新茶】温如玉试着调制一种新茶，连着几日都不太满意。茶味不是过涩，便是回甘太淡。他没有像往常那样把失败的茶叶悄悄处理掉，而是将几种配比写在纸上，邀请馆中人一同品尝。\n\n众人意见不一，苏砚辞嫌苦，谢临川说不如添些酒，顾行舟则认真问起成本。温如玉听完，竟笑出了声。\n\n他终于选定了自己喜欢的配方，并将它列入茶单。你问他为何忽然愿意听取这么多意见，他说，原来让别人参与，并不代表自己就要放弃决定。\n\n新茶正式推出那日，他特意为自己留了一盏。",
+            s5:"【温如玉·茶盏裂纹】那只旧茶盏终于沿着原有的缺口裂开了一道细纹。温如玉捧着它看了许久，没有像从前那样急着修补。\n\n你问他是否舍不得。\n\n「自然舍不得。」他说，「只是舍不得，也不代表一定要把它恢复成从前的模样。」\n\n他将茶盏收好，随后与你谈起往后的打算。他可以继续留在雅馆，也可以在某个时节外出游历一段时间；无论如何，他不想再把自己的决定永远排在最后。\n\n你没有替他选择。温如玉也没有急着给出一个讨好的答案，只说等自己想清楚，会亲口告诉你。\n\n这一次，他终于把自己的心意放在了众人之前。"
         },
         storyTrig:{
+            // ★ V40 修复：温如玉二段移除「茶室 Lv2」建筑门槛，改为好感40 + 一次日常互动；
+            //   三段移除「夜谈 4 次」操作门槛，改为好感60 + 主线第三章。
             s1:{favor:20,cond:[]},
-            s2:{favor:50,cond:[{type:"buildingLv",key:"chashi",val:2}]},
-            s3:{favor:80,cond:[{type:"receptionCount",key:"nightTalk",val:4}]},
-            s4:{favor:100,cond:[{type:"chapter",val:4}]},
-            s5:{favor:85,cond:[{type:"buildingLv",key:"chashi",val:2}]}
+            s2:{favor:40,cond:[{type:"interactAtLeast",key:"wen",val:1}]},
+            s3:{favor:60,cond:[{type:"chapter",val:3}]},
+            s4:{favor:80,cond:[{type:"chapter",val:4}]},
+            s5:{favor:85,cond:[{type:"chapterAtLeast",val:4}]}
         }
     },
     {
@@ -845,18 +915,20 @@ const characterData = [
         relationship:{shen:"neutral",su:"neutral",lu:"neutral",wen:"neutral",xie:"neutral"},
         unlockStory:"他来的时候带了一副棋，也不说是来做什么，只问：馆里有没有人会下棋。\n\n你还没答，他已经把棋盘摆在了廊下。摆完抬头看了看账房的方向，又看了看院里的客流，忽然问了一句：\n\n「你这馆，一天进项多少？成本呢？」\n\n你愣了愣。他笑了，报上姓名：顾行舟。棋士，顺带也懂点账。",
         storyTexts:{
-            s1:"【顾行舟·一局】一盘对弈之间，他直言雅馆账目漏洞。凡事先算利弊，是他长久以来行事准则。",
-            s2:"【顾行舟·让子】下棋之时，偶尔会悄悄让出一子，嘴上却绝不承认自己有意相让。",
-            s3:"【顾行舟·旧局】翻阅残缺旧账本，查到旧雅馆被人刻意切断物资、客源的证据。",
-            s4:"【顾行舟·胜负】他终于懂得，世间许多事，不能只用输赢账本衡量。解锁经营被动：账目稽核。",
-            s5:"【顾行舟·一笔错账】他核账核到三更，忽然停住，把某一页反复看了几遍。\n\n「这里错了。」他说，「三年前的一笔，多记了四十两。」\n\n「早过去了，追不回来的。」\n\n他沉默了一会儿，提笔在旁边批了一行小字，然后把笔搁下：「追不回来，也得记着。账错了不改，后面全是错的。」"
+            s1:"【顾行舟·一局】顾行舟初到雅馆时，先问的不是住处，也不是每日要做什么，而是账目由谁管理。得知经营账册尚未整理，他便自告奋勇接了下来。\n\n他做事利落，连一笔小小的茶钱也要记得清清楚楚。某日，你见他独自坐在桌前，将一局棋谱压在账本旁，便问他是不是又在算什么。\n\n「算一算，雅馆若照这样经营，能撑多久。」\n\n你问他为何连闲暇时也不肯放松。\n\n顾行舟看了你一眼，只说：「账目不会因为人累了，就自己变得好看。」\n\n他语气刻薄，却把你遗漏的一笔开支悄悄补进了账里。",
+            s2:"【顾行舟·让子】顾行舟与谢临川下棋时，常常不肯让子。可这日，他却主动将一枚棋子挪开，给了对方一个明显的机会。\n\n谢临川看出端倪，笑问他是不是终于愿意认输。\n\n顾行舟冷哼一声，说只是想看看对方究竟能走到哪一步。\n\n棋局结束后，谢临川并未赢得轻松，顾行舟也没有像平日那样逐一复盘。他收起棋子时，你问他为何突然改变了习惯。\n\n「有些局，若一开始便把路堵死，也没什么意思。」\n\n他说完便转身去核账，仿佛这句话与自己毫无关系。",
+            s3:"【顾行舟·旧局】顾行舟在旧账中发现一笔多年未结的支出。金额不算巨大，却被反复标注，像是有人曾经试图追查它的去向。\n\n他顺着账目查下去，发现那笔钱与旧馆关闭前的修缮和遣散安排有关。账面看似混乱，实际每一笔都能找到对应的用途。\n\n你问他这是否说明当年的经营并没有彻底失败。\n\n顾行舟没有立刻回答。他把账页摊开，指出真正的问题并非亏损，而是有人试图以资金为条件，要求上一代馆主交出对馆中人的处置权。\n\n「这不是一笔生意。」他说，「至少不该是。」\n\n他第一次主动将这句话写进了自己的备注里。",
+            s4:"【顾行舟·胜负】雅馆一项经营安排出了问题，若按原计划执行，短期内能多赚一笔银钱，却会让馆中人连续数日不得休息。顾行舟起初认为可以通过轮换解决，算到最后却发现仍有人要承担额外的劳累。\n\n温如玉提醒他，不能只看账面收益。顾行舟并不喜欢被人质疑，却也没有立即反驳。\n\n他重新核算了几遍，最终决定放弃那笔收入。\n\n你问他是否觉得可惜。\n\n「当然可惜。」他合上账本，「但账算得再漂亮，也不能拿人去填。」\n\n这次决定让他有些不自在，却没有后悔。",
+            s5:"【顾行舟·错账】顾行舟整理账本时，发现自己将一笔支出记错了。那并不是大数目，只是众人某次闲聚时买来的点心与茶水，却被他归进了经营杂项。\n\n他本想改正，翻到那一页时却停住了。旁边有谢临川随手写下的诗句，还有陆星遥画的一小片窗影。\n\n你问他为何不改。\n\n顾行舟沉默片刻，说账目当然要改，只是这些东西不该被当作毫无意义的开销。\n\n他重新开了一页，将那次闲聚单独记下，标题写着“馆中日常”。\n\n「账本记得住银钱，记不住人。」他说，「所以有些东西，得另找地方留着。」\n\n他仍旧精于计算，却终于不再要求所有重要的事都必须算出盈亏。"
         },
         storyTrig:{
+            // ★ V40 修复：顾行舟二段移除「对弈 3 次」门槛，改为好感40 + 一次日常互动；
+            //   三段移除旧账本随机事件 (oldBook) 硬依赖，改为好感60 + 主线第三章。
             s1:{favor:20,cond:[]},
-            s2:{favor:50,cond:[{type:"receptionCount",key:"chess",val:3}]},
-            s3:{favor:80,cond:[{type:"eventFlag",key:"oldBook",val:true}]},
-            s4:{favor:100,cond:[{type:"chapter",val:4}]},
-            s5:{favor:85,cond:[{type:"repAtLeast",val:400}]}
+            s2:{favor:40,cond:[{type:"interactAtLeast",key:"gu",val:1}]},
+            s3:{favor:60,cond:[{type:"chapter",val:3}]},
+            s4:{favor:80,cond:[{type:"chapter",val:4}]},
+            s5:{favor:85,cond:[{type:"chapterAtLeast",val:4}]}
         }
     },
     {
@@ -872,17 +944,19 @@ const characterData = [
         relationship:{shen:"neutral",su:"neutral",lu:"neutral",wen:"neutral",gu:"neutral"},
         unlockStory:"他是喝得半醉的时候自己走进来的，手里还提着个空酒壶。\n\n进门先赞了一句这院子的月亮，又嫌这儿的酒不够好，说着说着忽然停住，盯着檐下那副旧联看了很久，然后念了出来——念到下半句时卡了壳，自己先笑起来。\n\n「谢临川。」他抬手作了个揖，晃晃悠悠，「写诗的。酒也不太行，但话多。」",
         storyTexts:{
-            s1:"【谢临川·题诗】醉后挥毫题诗，嬉笑言语之下，字句藏着真切心绪。",
-            s2:"【谢临川·醉笔】清醒时刻总爱玩笑掩饰心事，唯有醉酒落笔，才敢袒露心底所想。",
-            s3:"【谢临川·旧梦】他知晓上一代馆主主动关闭雅馆全部内情，是为保全馆中众人不受牵连。",
-            s4:"【谢临川·今朝】不再逃避过往。此地于他，已经是心中想要归来的归处。解锁雅会「流觞雅集」。",
-            s5:"【谢临川·空白诗稿】他铺了纸，磨了墨，坐了小半个时辰，一个字也没落下。\n\n「写不出来？」\n\n「写得出来。」他把笔搁下，「只是从前写诗，是为了让人看。现在写，不知道给谁看。」\n\n后来那页纸还是空着。他吹干墨，夹进书里，说留着——总会有要写的时候。"
+            s1:"【谢临川·题诗】谢临川在雅馆里最不缺的便是闲情。客人来时，他能随口题诗助兴；客人走后，他又能寻个舒服的地方喝酒小憩。旁人说他懒散，他也从不反驳。\n\n某日，你在廊下发现一张被揉皱的诗稿。上面只写了两句，后面却被涂得一片凌乱。\n\n你问他为何不继续写，他笑着说灵感走了，强留也没用。\n\n你没有拆穿，只把纸放回桌上。后来你才发现，他将那张诗稿重新抚平，夹进了自己的书里。\n\n原来他并非不在意，只是不愿让旁人看见自己认真。",
+            s2:"【谢临川·醉笔】一场小宴之后，谢临川喝得微醺，提笔写诗。起初仍是平日里那种玩笑似的句子，写到一半，却忽然停了下来。\n\n他盯着纸面许久，最后将笔搁在一旁。\n\n你问他是不是想起了旧馆。\n\n谢临川笑了笑，说旧馆有什么好想的，关了便关了，天下又不是只有一处能喝酒的地方。\n\n可他说这话时，目光一直落在窗外。\n\n你没有追问，只替他收起酒壶。第二天，他看到桌上那张没写完的诗稿，难得没有将它揉掉。",
+            s3:"【谢临川·旧梦】谢临川偶然提起旧馆关闭前的一场宴席。那时众人尚不知道雅馆即将关门，仍照常布置厅堂、备茶备酒，仿佛明日一切都会如常。\n\n他记得那晚上一代馆主独自坐在廊下，手边放着一封没有拆开的信。谢临川曾问他为何不看，馆主只说，有些话看了也未必需要回答。\n\n后来贵客的条件传来，馆主拒绝交出雅馆，也不肯将馆中人当作交易的一部分。谢临川当时没有劝阻，只觉得那是个太过沉重的决定。\n\n「我那时只会喝酒。」他说，「连一句像样的话都没留下。」\n\n你问他如今是否仍觉得那是错过。\n\n他没有回答，只将杯中酒慢慢饮尽。",
+            s4:"【谢临川·今朝】雅馆重新开张后，谢临川常说如今的日子比从前清闲，至少不用担心哪天忽然被人赶走。可当一位客人谈起旧馆时，他又会不动声色地转开话题。\n\n这日，陆星遥拿来一幅新画，画的是众人在庭院里的日常。谢临川看了许久，忽然说画得不够好，少了几分风流。\n\n陆星遥问他想改哪里。\n\n谢临川本想继续玩笑，话到嘴边却停住了。他指着画中空着的一处，说那里可以添一张小桌，摆上酒壶。\n\n「这样才像我。」\n\n他说完又补了一句：「当然，酒钱记顾行舟账上。」\n\n众人笑了起来。他也笑，却没有再把那幅画推开。",
+            s5:"【谢临川·空白诗稿】谢临川终于写完了那首搁置许久的诗。诗里没有夸张的离别，也没有故作洒脱的句子，只写了雅馆的灯、庭院的雪、茶盏旁的棋局，以及几个人说过又忘了的话。\n\n最后一页仍留着一块空白。\n\n你问他为何不写满。\n\n他笑着说，往后的日子还长，若现在就把话都写完，未免太没意思。\n\n你发现他将诗稿认真收进匣中，而不是像从前那样随手丢在桌上。\n\n「这回不拿来抵酒钱了？」你问。\n\n谢临川摇头：「不抵了。欠账可以慢慢还，这个得自己留着。」\n\n他仍旧爱酒，也仍旧会开玩笑，只是终于愿意承认，有些人和日子值得认真珍惜。"
         },
         storyTrig:{
+            // ★ V40 修复：谢临川二段移除「夜间时段」门槛，改为好感40 + 一次日常互动；
+            //   三段移除旧梦随机事件 (xieOldDream) 硬依赖，改为好感60 + 主线第三章。
             s1:{favor:20,cond:[]},
-            s2:{favor:50,cond:[{type:"time",key:"night",val:true}]},
-            s3:{favor:80,cond:[{type:"eventFlag",key:"xieOldDream",val:true}]},
-            s4:{favor:100,cond:[{type:"chapter",val:5}]},
+            s2:{favor:40,cond:[{type:"interactAtLeast",key:"xie",val:1}]},
+            s3:{favor:60,cond:[{type:"chapter",val:3}]},
+            s4:{favor:80,cond:[{type:"chapter",val:4}]},
             s5:{favor:85,cond:[{type:"chapterAtLeast",val:4}]}
         }
     }
@@ -1228,6 +1302,9 @@ function getDefaultGameState(){
         buildingList:JSON.parse(JSON.stringify(buildingData)),
         stock:{qinpu:25,xuanzhi:18,huacha:15,wine:8,incense:10,flower:12},
         priceMod:{qinpu:1.0,xuanzhi:1.0,huacha:1.0,wine:1.0,incense:1.0,flower:1.0},
+        pricePrev:{qinpu:1.0,xuanzhi:1.0,huacha:1.0,wine:1.0,incense:1.0,flower:1.0},
+        priceDay:0,
+        tutorialSeen:false,     // ★ 最后一轮：新手教程是否已看过（开场剧情后自动弹一次）
         activeGuests:[],
         ongoingMeet:null,
         notes:["【系统】你接手荒废已久的清晏雅馆。"],
@@ -1268,6 +1345,17 @@ function getDefaultGameState(){
         mainStoryDeferred:{},
         mainStoryShownDay:{},
         collection:{},
+        // ★ V40 新增：与各角色的累计日常互动次数（人物好感剧情二/三段条件用）
+        charInteract:{},
+        // ★ V2.1 新增：互动剧情（双人/三人/六人）的"仅一次"与"每日一段"记账
+        interactStoryDone:{},
+        interactStoryDay:{day:0,ids:[]},
+        // ★ V2.1 新增：生病 / 疲劳状态（§六）
+        sickFirst:{},          // 六人"首次生病剧情"是否已触发
+        sickLog:{},            // 每人的生病/恢复记录（用于状态栏与日志）
+        fatigueNotice:{},      // 疲劳 60-79 / 80-99 提示只弹一次
+        // ★ V2.1 新增：每日只主动弹一段剧情/事件的额度（§一.7 / §五）
+        dailyPopup:{day:0,kinds:[],storyIds:[]},
         lastStoryEventDay:0,
         lastAdvanceEventDay:0
     }
@@ -1302,6 +1390,12 @@ function migrateGameState(rawState){
     if(!Array.isArray(rawState.buildingList)) rawState.buildingList = JSON.parse(JSON.stringify(def.buildingList));
     if(!rawState.stock || typeof rawState.stock!=="object") rawState.stock = {...def.stock};
     if(!rawState.priceMod || typeof rawState.priceMod!=="object") rawState.priceMod = {...def.priceMod};
+    // ★ 最后一轮：市价涨跌新增字段兜底（旧存档无这两项 → 补默认值，不报错）
+    if(!rawState.pricePrev || typeof rawState.pricePrev!=="object") rawState.pricePrev = {...rawState.priceMod};
+    if(!Number.isFinite(rawState.priceDay)) rawState.priceDay = 0;
+    // ★ 最后一轮：新手教程标记兜底。
+    //   旧存档没有这个字段 → 说明是老玩家，直接置 true，不再给他弹教程，避免打扰。
+    if(typeof rawState.tutorialSeen !== "boolean") rawState.tutorialSeen = true;
     if(!Array.isArray(rawState.activeGuests)) rawState.activeGuests = [];
     if(!Array.isArray(rawState.notes)) rawState.notes = [...def.notes];
     if(!rawState.flags || typeof rawState.flags!=="object") rawState.flags = {...def.flags};
@@ -1355,6 +1449,43 @@ function migrateGameState(rawState){
         rawState[EXHAUST_STREAK_KEY] = {};
     }
     // 疲惫标记所在 flags 已在上方兜底，这里无需重复处理
+
+    // ★ V40 新增：累计互动计数表兜底。
+    //   旧存档没有 charInteract 字段，若不补默认值，读取时 game.charInteract 为 undefined，
+    //   人物剧情「完成一次日常互动」条件会拿不到数据（checkCondition 内部虽有兜底，
+    //   但显式补上可保证存档结构完整、便于调试）。有则保留，不影响已有存档。
+    if(!rawState.charInteract || typeof rawState.charInteract !== "object"){
+        rawState.charInteract = {};
+    }
+
+    // ★ V2.1 新增字段兜底：互动剧情记账、生病/疲劳状态、每日弹窗额度。
+    //   旧存档没有这些字段，直接补默认值；有则原样保留（不回退、不重复发奖）。
+    if(!rawState.interactStoryDone || typeof rawState.interactStoryDone !== "object"){
+        rawState.interactStoryDone = {};
+    }
+    if(!rawState.interactStoryDay || typeof rawState.interactStoryDay !== "object"){
+        rawState.interactStoryDay = {day:0,ids:[]};
+    }
+    if(!Array.isArray(rawState.interactStoryDay.ids)) rawState.interactStoryDay.ids = [];
+    if(!Number.isFinite(rawState.interactStoryDay.day)) rawState.interactStoryDay.day = 0;
+    if(!rawState.sickFirst || typeof rawState.sickFirst !== "object") rawState.sickFirst = {};
+    if(!rawState.sickLog || typeof rawState.sickLog !== "object") rawState.sickLog = {};
+    if(!rawState.fatigueNotice || typeof rawState.fatigueNotice !== "object") rawState.fatigueNotice = {};
+    if(!rawState.dailyPopup || typeof rawState.dailyPopup !== "object"){
+        rawState.dailyPopup = {day:0,kinds:[],storyIds:[]};
+    }
+    if(!Array.isArray(rawState.dailyPopup.kinds)) rawState.dailyPopup.kinds = [];
+    if(!Array.isArray(rawState.dailyPopup.storyIds)) rawState.dailyPopup.storyIds = [];
+    if(!Number.isFinite(rawState.dailyPopup.day)) rawState.dailyPopup.day = 0;
+
+    // 角色生病字段兜底（旧存档没有 sick 概念）
+    if(Array.isArray(rawState.characterList)){
+        rawState.characterList.forEach(c=>{
+            if(typeof c.sick !== "boolean") c.sick = false;
+            if(!Number.isFinite(c.sickDay)) c.sickDay = 0;
+            if(!Number.isFinite(c.restStreak)) c.restStreak = 0;
+        });
+    }
 
     if(!rawState.dailyTasks || typeof rawState.dailyTasks!=="object"){
         rawState.dailyTasks = {day:0,ids:[],done:[],skipped:[]};
@@ -1424,6 +1555,8 @@ function showGlobalModal(text, choiceArr){
     document.getElementById("modTitle").innerText = "";
     const btnsWrap = document.getElementById("modBtns");
     btnsWrap.innerHTML = "";
+    // ★ 最后一轮：本次弹的是不是「开场剧情」——是的话，关闭后再接新手教程
+    const isOpenStory = (text === storyMainData.openStory.text);
     choiceArr.forEach(ch=>{
         const btn = document.createElement("button");
         btn.className = "btn btn-primary";
@@ -1432,6 +1565,10 @@ function showGlobalModal(text, choiceArr){
             applyEffect(ch.effect);
             mask.classList.add("mask-hidden");
             renderAll();
+            // ★ 开场剧情关闭后，自动接新手教程（只弹一次，且不抢别的弹窗）
+            if (isOpenStory && typeof maybeShowTutorialAfterOpening === "function") {
+                maybeShowTutorialAfterOpening();
+            }
         };
         btnsWrap.appendChild(btn);
     });
@@ -1453,6 +1590,11 @@ function loadGame(){
     if(!rawText){
         //无存档，全新游戏
         game = getDefaultGameState();
+        // ★ 最后一轮：新档初始化也要生成当日市价 + 复查互动剧情（文档 §三.2）
+        try {
+            if (typeof ensureMarketPriceToday === "function") ensureMarketPriceToday();
+            if (typeof registerInteractStories === "function") registerInteractStories();
+        } catch (e) { console.error("新档初始化复查异常", e); }
         renderAll();
         showGlobalModal(storyMainData.openStory.text, storyMainData.openStory.choices);
         return;
@@ -1510,12 +1652,33 @@ function loadGame(){
     if(!game.dailyReceptionCount || typeof game.dailyReceptionCount!=="object") game.dailyReceptionCount = {};
     if(!Number.isFinite(game.totalReception)) game.totalReception = 0;
     if(!Number.isFinite(game.lastHakouDay)) game.lastHakouDay = -99;
+    // ★ V2.1：互动状态归一化 + 读档后复查剧情。
+    //   文档 §一.6 要求「读档完成后」也要调用个人剧情条件检查函数；
+    //   否则条件早已满足、只是当时被弹窗占用，读档后就再也不会补弹。
+    try { if (typeof ensureInteractState === "function") ensureInteractState(); } catch (e) { console.error("互动状态归一化异常", e); }
+
     // 当日事件在重绘时按种子重算，避免刷新后丢失
     RUNTIME.dayEvent = null;
     saveGame();
     renderAll();
     rollDailyEvent();
     renderStat();
+
+    // ★ V2.1 / 最后一轮：读档后复查（不占"每日额度"——读档不是新的一天，
+    //   若当天额度已用过，queueStories 仍会把人物剧情排入队列并展示）
+    try {
+        if (typeof checkStoryTriggers === "function") queueStories(checkStoryTriggers());
+        // 互动剧情：先登记（随时、无条件），再在额度允许时播放
+        if (typeof registerInteractStories === "function") {
+            registerInteractStories();
+            if (canPopupToday() && typeof playPendingInteract === "function") playPendingInteract();
+        }
+        if (typeof checkSickStories === "function" && canPopupToday()) {
+            const sl = checkSickStories();
+            if (sl && sl.length) { markPopupToday(POPUP_KIND.SICK, sl[0].key); queueStories(sl); }
+        }
+        flushStoryQueue();
+    } catch (e) { console.error("读档剧情复查异常", e); }
 }
 
 function resetGame(){
@@ -1964,6 +2127,7 @@ const TAG_LABEL = Object.assign({}, STAT_LABEL, RECEP_LABEL, ATMOS_LABEL);
 const RUNTIME = {
     currentPage: "yard",
     expandedStory: {},      // {charId:true} 展开中的个人故事面板
+    pendingInteract: [],    // ★ 最后一轮：待播放的互动剧情 id 队列（条件已满足、等待播放时机）
     pendingReception: null, // 待确认的接待方案
     pendingMeet: null,      // 待确认的雅会方案
     pendingMeetChars: [],   // 雅会已选人物
@@ -2132,6 +2296,16 @@ function getWorkableChars() {
     return (game.characterList || []).filter(c => c.unlocked && !c.left);
 }
 
+/**
+ * ★ V2.1（§六）：真正"今天能干活"的角色 —— 在可工作角色基础上排除病倒者。
+ *   病倒期间不能正常接待或承担工作，但**不会永久失去角色**，恢复后自动回到名单。
+ * 注意：本函数不应被用于"人还在不在"的判断（那用 getWorkableChars），
+ *      只用于接待/雅会/培养等"需要出工"的场合。
+ */
+function getAvailableWorkers() {
+    return getWorkableChars().filter(c => !isSick(c));
+}
+
 /* ---------- 1. 条件检查器（统一入口） ---------- */
 
 /**
@@ -2218,6 +2392,26 @@ function checkCondition(cond) {
         case "cleanBelow": {
             return safeNum(game.cleanScore, 100) < safeNum(cond.val, 0);
         }
+        // ---- V40 新增：人物好感剧情的轻量条件（按《解锁条件调整案》§二/§五）----
+        // 「完成过一次日常互动」必须检查**真实互动次数**，而不是无关的事件旗标
+        // （文档 §五明确要求"条件描述与实际判定必须一一对应"）。
+        case "interactAtLeast": {
+            const need = safeNum(cond.val, 1);
+            const charId = cond.key || "";
+            const map = game.charInteract || {};
+            // 兼容：总表 + 分表两种记法都读
+            const n = charId ? safeNum(map[charId], 0) : (function () {
+                let t = 0; Object.keys(map).forEach(k => { t += safeNum(map[k], 0); }); return t;
+            })();
+            return n >= need;
+        }
+        case "metChar": {
+            // 「已结识该角色」——以角色是否已解锁（进入雅馆）为准，复用既有状态，不叠加额外条件
+            const c = getChar(cond.key);
+            if (!c) return false;
+            if (cond.val === false) return !c.unlocked;
+            return !!c.unlocked;
+        }
         default:
             return true; // 未知条件不阻断，避免卡死进度
     }
@@ -2238,6 +2432,31 @@ function prevStoryDone(ch, key) {
     const idx = order.indexOf(key);
     if (idx <= 0) return true;
     return isStoryDone(ch, order[idx - 1]);
+}
+
+/**
+ * ★ V40 二次修复：人物故事的「必定触发」兜底检查。
+ *
+ * 背景（用户反馈）："前个剧情解锁后某时间必定触发，或者你写清楚触发条件是什么"。
+ *
+ * checkStoryTriggers() 只在若干结算点被调用；若玩家在两次结算之间满足了条件，
+ * 或某次调用因已展示弹窗（RUNTIME.storyShowing）被跳过，剧情就可能"看起来没反应"。
+ * 本函数作为统一兜底：
+ *   1) 遍历所有已解锁角色 × 五段剧情，凡「前置已读 + 条件满足 + 尚未完成/未入队」者一律入队；
+ *   2) 返回本次新入队条目，供调用方弹出；
+ *   3) 幂等：重复调用不会重复入队（内部依靠 isStoryQueued / isStoryDone 去重）。
+ *
+ * 返回值与 checkStoryTriggers() 同构，可直接交给 queueStories()。
+ */
+function ensureStoryTriggers() {
+    let list = [];
+    try {
+        list = checkStoryTriggers() || [];
+    } catch (e) {
+        console.error("剧情检查异常", e);
+        list = [];
+    }
+    return list;
 }
 
 /* ---------- 2. 人物解锁 ---------- */
@@ -2379,7 +2598,10 @@ function checkStoryTriggers() {
 function storyTitle(ch, key) {
     const raw = (ch.storyTexts || {})[key] || "";
     const m = raw.match(/【(.+?)】/);
-    return m ? m[1] : `${ch.name} · ${key}`;
+    if (m) return m[1];
+    // ★ V40：兜底也不显示内部 key，改用「第N段」
+    const idx = STORY_KEYS.indexOf(key);
+    return `${ch.name} · 第${idx >= 0 ? idx + 1 : 1}段`;
 }
 
 /** 故事解锁的奖励说明（与文本一致，只做提示，数值奖励在 applyStoryReward 里发） */
@@ -2491,12 +2713,12 @@ function storyDiag(ch, k) {
     if (!t) return { ok: false, items: [{ text: "该段故事未定义触发条件", cur: 0, need: 0, ok: false }], lack: 1 };
     const items = [];
 
-    // 1. 前置段落
+    // 1. 前置段落 —— ★ V40：不再显示内部 key（S1/S2），改用该段剧情的真实标题
     const idx = STORY_KEYS.indexOf(k);
     if (idx > 0) {
         const prev = STORY_KEYS[idx - 1];
         const done = isStoryDone(ch, prev);
-        items.push({ text: `完成前置段落 ${prev.toUpperCase()}`, cur: done ? 1 : 0, need: 1, ok: done });
+        items.push({ text: `先解锁上一段「${storyTitle(ch, prev)}」`, cur: done ? 1 : 0, need: 1, ok: done });
     }
     // 2. 好感
     const favorCur = safeNum(ch.favor, 0);
@@ -2516,31 +2738,59 @@ function storyDiag(ch, k) {
     return { ok: lack === 0, items: items, lack: lack };
 }
 
-/** 条件的中文描述（诊断面板显示用） */
+/**
+ * 条件的中文描述（剧情诊断 / 人物故事面板显示用）
+ *
+ * ★ V40 二次修复（用户反馈"事件还是有英文"）：
+ *   本函数此前**没有** interactAtLeast / metChar 两个分支，会落到 default 直接把内部类型名
+ *   原样返回，导致界面上出现 "interactAtLeast" 这样的英文；
+ *   同时 eventFlag 分支也把内部旗标名拼进了 UI（"触发事件「nightQin」"）。
+ *   按《人物好感剧情解锁条件调整案》§二「禁止向玩家显示 oldsu、suOldFriend、springWen、
+ *   oldScroll 等内部变量名」，这里统一改为自然中文，且不再回退暴露任何内部标识。
+ */
 function condDescribe(c) {
+    if (!c || !c.type) return "满足相关条件";
     switch (c.type) {
         case "buildingLv": {
             const b = (game.buildingList || []).find(x => x.id === c.key);
-            return `建成「${b ? b.name : c.key}」并达到 ${c.val} 级`;
+            return `建成「${b ? b.name : "对应建筑"}」并达到 ${c.val} 级`;
         }
         case "receptionCount": {
             const r = receptionData.find(x => x.id === c.key);
-            return `完成「${r ? r.name : c.key}」接待 ${c.val} 次`;
+            return `完成「${r ? r.name : "指定"}」接待 ${c.val} 次`;
         }
         case "totalReception": return `累计接待 ${c.val} 次`;
         case "meetDone": return `举办雅会 ${c.val === true ? 1 : safeNum(c.val, 1)} 次`;
+        case "meetNotDone": return "尚未举办过该雅会";
         case "repAtLeast": return `名声达到 ${c.val}`;
         case "chapterAtLeast": return `主线推进至第 ${c.val} 章`;
         case "chapter": return `主线达到第 ${c.val} 章`;
-        case "eventFlag": return `触发事件「${c.key}」`;
-        case "favorOf": return `${(getChar(c.key) || {}).name || c.key} 好感达到 ${c.val}`;
+        // ★ 不再显示「触发事件「内部旗标名」」，也不再使用含糊的"往事"兜底。
+        //   当前版本已无任何 eventFlag 条件；若将来重新引入，也必须在此写明具体触发方式。
+        case "eventFlag": return "完成对应的往事互动（详见该段剧情提示）";
+        case "favorOf": return `${(getChar(c.key) || {}).name || "他"}好感达到 ${c.val}`;
         case "silver": return `持有银两达到 ${c.val}`;
         case "dayRange": return `游戏日在 ${c.min || 1}~${c.max || "∞"} 日之间`;
         case "time": {
             const tk = { morning: "早晨", day: "白天", evening: "傍晚", night: "夜间" };
-            return `推进到「${tk[c.key] || c.key}」时段`;
+            return `推进到「${tk[c.key] || "指定"}」时段`;
         }
-        default: return c.type || "未知条件";
+        case "fameAtLeast": return `个人名气达到 ${c.val}`;
+        case "totalFame": return `全馆名气达到 ${c.val}`;
+        case "cleanAtLeast": return `整洁度达到 ${c.val}`;
+        case "cleanBelow": return `整洁度低于 ${c.val}`;
+        // ★ 新增：与 checkCondition 新增的轻量条件一一对应（文档 §五：描述与判定必须一一对应）
+        //   并在文案里写清**去哪里做**，避免玩家看到条件却不知道如何完成（用户反馈"写清楚触发条件"）
+        case "interactAtLeast": {
+            const cc = c.key ? getChar(c.key) : null;
+            return `与${cc ? cc.name : "他"}完成一次日常互动（在「人物」页点「闲谈」或「培养」即可）`;
+        }
+        case "metChar": {
+            const cc2 = getChar(c.key);
+            return cc2 ? `已结识${cc2.name}` : "已结识该角色";
+        }
+        // ★ 兜底也不再暴露内部条件名
+        default: return "满足相关条件";
     }
 }
 
@@ -2631,19 +2881,87 @@ function flushStoryQueue() {
     RUNTIME.storyShowing = true;
     const s = RUNTIME.storyQueue.shift();
     showStoryModal(s, function (btnKey) {
+        // ★ 最后一轮：剧情播完后统一复查互动剧情（文档 §三.2「互动剧情或其他剧情播放结束后」）
+        const afterStory = function () {
+            RUNTIME.storyShowing = false;
+            // 先把已有队列推进完；队列空了再尝试播放待播放的互动剧情
+            if (RUNTIME.storyQueue.length) { flushStoryQueue(); return; }
+            try {
+                if (typeof registerInteractStories === "function" && typeof playPendingInteract === "function") {
+                    registerInteractStories();
+                    if (playPendingInteract()) { flushStoryQueue(); return; }
+                }
+            } catch (e) { console.error("剧情结束后互动复查异常", e); }
+        };
         // ★ V40：主线节点有两条分支（就这么办 / 稍后再说），需要按选择落状态
         if (s.isMain && s.onChoice) {
             try { s.onChoice(btnKey); } catch (e) { console.error("主线节点回调异常", e); }
-            RUNTIME.storyShowing = false;
-            flushStoryQueue();
+            afterStory();
+            return;
+        }
+        // ★ V2.1：互动剧情（双人/三人）走独立结算 —— 它的 ch 为 null，
+        //   若误用 commitStoryRead 会静默 no-op，导致奖励不发、"仅一次"标记不落，
+        //   下次结算又弹一遍。这里按 isInteractStory 分流。
+        if (s.isInteractStory) {
+            try { commitInteractStoryRead(s); } catch (e) { console.error("互动剧情结算异常", e); }
+            afterStory();
+            return;
+        }
+        // ★ V2.1：生病剧情不需要额外结算（sickFirst 已在触发时记账），直接推进队列
+        if (s.isSickStory) {
+            afterStory();
             return;
         }
         // ★ V37：玩家点「知道了」之后才落地奖励 + 标记 completed
         commitStoryRead(s);
-        RUNTIME.storyShowing = false;
-        flushStoryQueue();
+        afterStory();
     });
 }
+
+/* ---------- 3.5 每日主动弹窗额度（V2.1 §一.7 / §五） ---------- */
+
+/**
+ * 每日「主动弹出」额度管理。
+ *
+ * 文档要求（§一.7 展示与领取 / §五 事件展示）：
+ *   「每日最多主动弹出一段剧情/事件，避免互动、随机事件、生病剧情连续轰炸。」
+ *   「若当天因其他剧情占用展示名额，个人剧情保留在待触发队列，之后再展示，不得丢失。」
+ *
+ * 实现要点：
+ *   · 额度按「游戏日」记账，写入存档，跨刷新/读档不会重置（避免同一天反复弹）。
+ *   · 人物好感剧情**不受该额度限制**（它是玩家自己攒出来的核心奖励，必须按时给），
+ *     受限制的是：互动剧情、随机事件、生病剧情 —— 这三类共用"每天一次"。
+ *   · 被额度挡下的互动剧情**不消耗**，次日仍可再次参与判定（不会永久丢失）。
+ */
+const POPUP_KIND = { INTERACT: "interact", EVENT: "event", SICK: "sick" };
+
+/** 取当日弹窗额度记录（惰性初始化 + 跨日自动清零） */
+function getDailyPopup() {
+    if (!game) return { day: 0, kinds: [], storyIds: [] };
+    const today = safeNum(game.day, 1);
+    if (!game.dailyPopup || typeof game.dailyPopup !== "object") {
+        game.dailyPopup = { day: 0, kinds: [], storyIds: [] };
+    }
+    if (safeNum(game.dailyPopup.day, 0) !== today) {
+        game.dailyPopup = { day: today, kinds: [], storyIds: [] };
+    }
+    if (!Array.isArray(game.dailyPopup.kinds)) game.dailyPopup.kinds = [];
+    if (!Array.isArray(game.dailyPopup.storyIds)) game.dailyPopup.storyIds = [];
+    return game.dailyPopup;
+}
+
+/** 今日是否还能主动弹出一段（额度是否已用完） */
+function canPopupToday() {
+    return getDailyPopup().kinds.length === 0;
+}
+
+/** 记账：今日已弹出一段某类型的内容 */
+function markPopupToday(kind, storyId) {
+    const p = getDailyPopup();
+    if (kind && p.kinds.indexOf(kind) < 0) p.kinds.push(kind);
+    if (storyId && p.storyIds.indexOf(storyId) < 0) p.storyIds.push(storyId);
+}
+
 
 /* ---------- 4. 客人系统 ---------- */
 
@@ -2946,6 +3264,254 @@ function isExhausted(ch) { return !!(game.flags || {})[EXHAUST_FLAG + "_" + (ch 
 function getExhaustPenalty(ch) {
     if (!isExhausted(ch)) return { recoverMult: 1.0, moodDelta: 0, note: "" };
     return { recoverMult: 0.7, moodDelta: -3, note: "疲惫：恢复效率 70%，心情 -3。" };
+}
+
+/* ---------- 5.5 生病与疲劳系统（V2.1 §六） ----------
+ *
+ * 文档要求：
+ *   · 生病应与疲劳关联，不完全随机
+ *   · 0—59 正常；60—79 疲惫（效率轻微下降）；80—99 过度疲劳（效率明显下降 + 每日适度概率生病）；
+ *     100 及以上 病倒（暂时无法正常工作）
+ *   · 生病后可休息、使用现有药品或安排照顾恢复
+ *   · 病倒期间不能正常接待或承担工作；不处理时恢复变慢，但**不得永久死亡、永久失去角色或锁死主线**
+ *   · 治疗前检查资源，确认后才扣除；**若游戏没有药品系统，不要强制引入稀有药品**
+ *   · 六人首次生病剧情各触发一次
+ * --------------------------------------------------- */
+
+/** 生病概率（仅"过度疲劳"80—99 阶段每日判定，符合"适度概率"） */
+const SICK_CHANCE_EXHAUSTED = 0.18;
+
+/** 该角色是否处于生病（病倒）状态 */
+function isSick(ch) {
+    return !!(ch && ch.sick);
+}
+
+/**
+ * 日结时的生病判定：只与疲劳挂钩（文档 §六）。
+ *   · 80—99：每日 SICK_CHANCE_EXHAUSTED 概率生病
+ *   · 100+：直接病倒（疲劳到顶必然出问题，但仍可通过休息恢复，不会永久失去角色）
+ * 返回本次新病倒的角色数组。
+ */
+function updateSickState() {
+    const newly = [];
+    (game.characterList || []).forEach(c => {
+        if (!c.unlocked) return;
+        if (typeof c.sick !== "boolean") c.sick = false;
+        const f = safeNum(c.fatigue, 0);
+        if (c.sick) return;                     // 已在病中，等待恢复
+        if (f >= 100) {
+            c.sick = true; c.sickDay = safeNum(game.day, 1);
+            newly.push(c);
+        } else if (f >= 80) {
+            // 确定性随机（按 角色+游戏日 派生），同一日反复结算结果一致
+            const seed = makeDaySeed(safeNum(game.day, 1)) + c.id.length * 131 + c.id.charCodeAt(0) * 17;
+            if (seededUnit(seed) < SICK_CHANCE_EXHAUSTED) {
+                c.sick = true; c.sickDay = safeNum(game.day, 1);
+                newly.push(c);
+            }
+        }
+    });
+    return newly;
+}
+
+/**
+ * 病倒状态对工作的影响：不能正常接待 / 承担工作（文档 §六）。
+ * 注意：只"暂停"，不做属性永久扣除，也不会让角色消失。
+ */
+function getSickPenalty(ch) {
+    if (!isSick(ch)) return { blocked: false, recoverMult: 1.0, note: "" };
+    return { blocked: true, recoverMult: 0.55, note: "生病休养中：今日无法参与雅馆经营。" };
+}
+
+/** 生病恢复：休息 / 用药 / 照顾共用入口。返回是否本次恢复 */
+function tryRecoverSick(ch, amount, source) {
+    if (!ch || !ch.sick) return false;
+    ch.fatigue = Math.max(0, safeNum(ch.fatigue, 0) - safeNum(amount, 0));
+    // 疲劳降回 60 以下即可康复（不会因"病"本身永久卡住）
+    if (safeNum(ch.fatigue, 0) < 60) {
+        ch.sick = false;
+        ch.sickDay = 0;
+        if (!game.sickLog) game.sickLog = {};
+        game.sickLog[ch.id] = { day: safeNum(game.day, 1), text: `${ch.name} 已恢复。` };
+        game.notes.push(`【恢复】${ch.name} 身子已见好，可以重新参与雅馆经营了（${source || "休养"}）。`);
+        pushSeenLog("recover", `${ch.name} 已恢复`);
+        return true;
+    }
+    return false;
+}
+
+/**
+ * ★ V2.1 §七：疲劳状态提示文案。
+ *   · 疲劳进入 60—79：「{角色名}似乎有些疲倦，今日不妨让他多休息一会儿。」——仅进入该状态时提示一次
+ *   · 疲劳进入 80—99：「{角色名}近日劳累过度，状态不佳。若继续操劳，恐怕会病倒。」——提示一次
+ *   · 角色病倒 / 恢复 由 updateSickState / tryRecoverSick 负责文案
+ *   全部记录在 game.fatigueNotice[id] 上，只在不重复的前提下提示。
+ */
+function updateFatigueNotices() {
+    if (!game.fatigueNotice || typeof game.fatigueNotice !== "object") game.fatigueNotice = {};
+    const lines = [];
+    (game.characterList || []).forEach(c => {
+        if (!c.unlocked) return;
+        const f = safeNum(c.fatigue, 0);
+        const rec = game.fatigueNotice[c.id] || {};
+        let level = "ok";
+        if (f >= 80) level = "exhausted";
+        else if (f >= 60) level = "tired";
+
+        if (level === "tired" && rec.level !== "tired" && rec.level !== "exhausted") {
+            lines.push(`${c.name}似乎有些疲倦，今日不妨让他多休息一会儿。`);
+            game.fatigueNotice[c.id] = { level: "tired", day: safeNum(game.day, 1) };
+        } else if (level === "exhausted" && rec.level !== "exhausted") {
+            lines.push(`${c.name}近日劳累过度，状态不佳。若继续操劳，恐怕会病倒。`);
+            game.fatigueNotice[c.id] = { level: "exhausted", day: safeNum(game.day, 1) };
+        } else if (level === "ok" && rec.level) {
+            // 回到正常区间：静默清除记录，不重复弹旧提示（文档：不要重复弹出旧的生病提示）
+            game.fatigueNotice[c.id] = { level: "ok", day: safeNum(game.day, 1) };
+        }
+    });
+    return lines;
+}
+
+/**
+ * ★ V2.1 §6.1：六人"首次生病剧情"，每人仅触发一次。
+ *   文档已给出全部对白，这里按原文录入（不改情节方向）。
+ *   与人物好感剧情分开记账（game.sickFirst），不占好感剧情额度。
+ */
+const SICK_STORIES = {
+    shen: {
+        title: "琴声暂歇",
+        text: () => [
+            "【沈清寒 · 琴声暂歇】",
+            "听琴阁里没有声音。",
+            "你推门进去，沈清寒正把手从琴上收回来，指尖有些发抖。他见你来了，下意识把袖子拉下来遮了遮。",
+            "沈清寒：……只是手有些凉。",
+            "你把手贴上去，指尖是烫的。他要抽回去，没抽动。",
+            "沈清寒：别看了。",
+            "你：今天不弹了。",
+            "他沉默了一会儿，低声说：好。",
+            "他起身时晃了一下，你下意识扶住他。他僵了僵，最终没有推开。",
+            "沈清寒：……就扶到门口。"
+        ].join("\n")
+    },
+    su: {
+        title: "难得安静",
+        text: () => [
+            "【苏砚辞 · 难得安静】",
+            "苏砚辞今天没说话。",
+            "这比什么都吓人。",
+            "你找到他时，他正靠在窗边，脸颊泛着不正常的红，手里还捏着一本翻了一半的册子。",
+            "苏砚辞：我只是在想事情。",
+            "你：想事情要想到脸红？",
+            "苏砚辞：……我这是血气好。",
+            "你伸手探了探他的额头。他没躲，只是把眼睛闭上了。",
+            "苏砚辞：别告诉沈清寒。",
+            "你：为什么？",
+            "苏砚辞：他会说我活该。",
+            "他顿了顿，声音低下去：……而且他会担心。"
+        ].join("\n")
+    },
+    lu: {
+        title: "未完成的画",
+        text: () => [
+            "【陆星遥 · 未完成的画】",
+            "画案上摊着一张没画完的纸，墨已经干了。",
+            "陆星遥裹着外衣坐在旁边，手里还握着笔，人却像是睡过去了。",
+            "你走近，他睁开眼，第一句话是：我还没画完。",
+            "你：先睡。",
+            "陆星遥：这处山势不对，得趁我记得的时候改。",
+            "他撑着要站起来，笔掉在地上。他低头看了很久，像是在想该怎么捡。",
+            "你把笔拾起来，放进笔筒。",
+            "陆星遥：……你今天怪好的。",
+            "你：我一直很好。",
+            "他笑了一下，靠着你的肩膀睡了过去。"
+        ].join("\n")
+    },
+    wen: {
+        title: "今日换我照顾你",
+        text: () => [
+            "【温如玉 · 今日换我照顾你】",
+            "温如玉病了。",
+            "这件事本身就很不对劲——平日里替你煎茶、替你操心衣裳薄厚的人，如今躺在床上，还在指挥你怎么煮水。",
+            "温如玉：水要三沸，别急着下茶。",
+            "你：你现在是病人。",
+            "温如玉：病人也知道三沸。",
+            "你：喝了就闭嘴。",
+            "他接过去喝了一口，眉头皱起来，到底没说什么，只是把碗捧在手里，慢慢暖着。",
+            "过了半晌。",
+            "温如玉：……其实不难喝。",
+            "你：那是当然。",
+            "温如玉（轻声）：今日换你照顾我了。",
+            "你：明天也换我照顾你。",
+            "温如玉：那后天呢？",
+            "你：看你表现。"
+        ].join("\n")
+    },
+    gu: {
+        title: "暂停营业？",
+        text: () => [
+            "【顾行舟 · 暂停营业？】",
+            "账房里传出算珠落地的声音，接着是一声闷响。",
+            "你冲进去，顾行舟扶着桌沿，脸色白得吓人，手边还摊着今日的账目。",
+            "顾行舟：没事，手滑。",
+            "你：今天歇业一天。",
+            "顾行舟：不行。",
+            "你：账重要还是命重要？",
+            "顾行舟：账就是我这条命的用法。",
+            "你盯着他看。他别开脸。",
+            "顾行舟：……只歇一天。",
+            "你：好。",
+            "顾行舟：真就一天。",
+            "你：好。",
+            "他终于坐回椅子上，闭了闭眼，语气松下来：账我会补上的。"
+        ].join("\n")
+    },
+    xie: {
+        title: "酒醒时分",
+        text: () => [
+            "【谢临川 · 酒醒时分】",
+            "谢临川的房门开着，地上没有酒坛。",
+            "这本身就是件怪事。",
+            "他靠在床头，见你进来，先笑了一下，笑得没什么力气。",
+            "谢临川：今日没喝。",
+            "你：你也知道今天不该喝。",
+            "谢临川：知道，所以没喝。",
+            "他咳了两声，伸手去够桌上的水，没够到。你端给他，他双手接过去，喝得很慢。",
+            "谢临川：你知道我最怕什么吗？",
+            "你：什么？",
+            "谢临川：怕有一天我不用喝酒，也写不出东西。",
+            "他顿了顿。",
+            "谢临川：今天试了试，还行。",
+            "你：写什么了？",
+            "谢临川：写了你要我写的那首。"
+        ].join("\n")
+    }
+};
+
+/**
+ * 触发"首次生病剧情"（每人一次）。
+ * 返回待入队的故事列表 —— 由调用方受"每日最多主动弹一段"额度约束。
+ */
+function checkSickStories() {
+    const out = [];
+    if (!game.sickFirst || typeof game.sickFirst !== "object") game.sickFirst = {};
+    (game.characterList || []).forEach(c => {
+        if (!c.unlocked || !isSick(c)) return;
+        if (game.sickFirst[c.id]) return;
+        const def = SICK_STORIES[c.id];
+        if (!def) return;
+        game.sickFirst[c.id] = true;
+        out.push({
+            charId: c.id,
+            name: c.name,
+            key: "sick_" + c.id,
+            isSickStory: true,
+            title: def.title,
+            text: typeof def.text === "function" ? def.text() : def.text,
+            tip: "",
+            ch: null
+        });
+    });
+    return out;
 }
 
 /**
@@ -3252,6 +3818,8 @@ function doReception(gid, rid, charIds) {
     const newChars = checkCharacterUnlocks();
     const newStories = checkStoryTriggers();
     queueStories(newStories);
+    // ★ 最后一轮：接待（含好感增长）后立即检查互动剧情；角色解锁后也需复查
+    if (typeof notifyInteractCheck === "function") notifyInteractCheck("reception");
     checkChapterProgress();
 
     saveGame();
@@ -3295,8 +3863,12 @@ function checkAutoRecep(gid) {
     if (guest.isFinal) return { ok: false, reason: "这位客人身份特殊，需要你亲自应对。" };
     if (safeNum(game.actionPoint, 0) < 1) return { ok: false, reason: "行动力不足，先结束今日营业吧。" };
 
-    const workers = getWorkableChars();
-    if (!workers.length) return { ok: false, reason: "馆中暂无可工作的人物。" };
+    // ★ V2.1 §六：病倒的角色不能承担接待工作（仅"暂停"，不是永久缺席）
+    const workers = getAvailableWorkers();
+    if (!workers.length) {
+        const anySick = getWorkableChars().some(c => isSick(c));
+        return { ok: false, reason: anySick ? "馆中人物正在休养，今日无人可派。" : "馆中暂无可工作的人物。" };
+    }
 
     // 逐个活动排查，分别记录"缺物资"和"人手倦意"两类原因
     let hasOption = false;
@@ -3362,7 +3934,8 @@ function calcApBudget(totalAP, mode) {
  */
 function pickBestPlan(guest, o) {
     const opt = o || {};
-    const workers = getWorkableChars();
+    // ★ V2.1 §六：病倒的角色不参与排班
+    const workers = getAvailableWorkers();
     let best = null;
 
     for (const r of receptionData) {
@@ -3656,6 +4229,25 @@ function markCharDaily(kind, charId) {
     m[charId] = safeNum(m[charId], 0) + 1;
 }
 
+/**
+ * ★ V40 新增：累计「与该角色的日常互动次数」（跨天累加，持久化到存档）。
+ *   用途：人物好感剧情二/三段的「完成一次日常互动」条件需要**真实计数**支撑
+ *   （文档 §五：「条件描述与实际判定必须一一对应，若界面写『完成一次互动』，
+ *   代码就必须检查真实互动计数，而不是检查无关事件旗标」）。
+ *   覆盖范围：闲谈、培养、深培、休息照料、茶室调养、接待出勤 —— 只要发生过就算一次互动。
+ *   实现：仅新增一个 `game.charInteract` 计数表，不改动任何既有数值与结算逻辑。
+ */
+function bumpCharInteract(charId) {
+    if (!charId) return;
+    if (!game.charInteract || typeof game.charInteract !== "object") game.charInteract = {};
+    game.charInteract[charId] = safeNum(game.charInteract[charId], 0) + 1;
+}
+
+/** 读取某角色的累计互动次数（无记录返回 0） */
+function getCharInteract(charId) {
+    return safeNum((game.charInteract || {})[charId], 0);
+}
+
 /** 茶室调养：全馆每日 2 次 */
 function getTeaRestCount() {
     const t = game.dailyTeaRest;
@@ -3694,6 +4286,7 @@ function doTrain(charId, statKey) {
     game.actionPoint -= 1;
     game.dailyCost = safeNum(game.dailyCost, 0) + cost;
     markCharDaily("train", charId);
+    bumpCharInteract(charId);          // ★ V40：记入累计互动（人物剧情条件用）
 
     const gain = getTrainGain(ch, statKey);
     const before = safeNum(ch.stats[statKey], 0);
@@ -3708,6 +4301,8 @@ function doTrain(charId, statKey) {
 
     const newStories = checkStoryTriggers();
     queueStories(newStories);
+    // ★ 最后一轮：培养后立即检查互动剧情（文档 §三.2「培养」）
+    if (typeof notifyInteractCheck === "function") notifyInteractCheck("train");
     saveGame();
     toast(`${ch.name} ${STAT_LABEL[statKey] || statKey} ${formatStat(before)} → ${formatStat(ch.stats[statKey])}`);
     return true;
@@ -3728,6 +4323,7 @@ function doDeepTrain(charId, statKey) {
     game.actionPoint -= 2;
     game.dailyCost = safeNum(game.dailyCost, 0) + cost;
     markCharDaily("deep", charId);
+    bumpCharInteract(charId);          // ★ V40：记入累计互动（人物剧情条件用）
 
     const gain = Math.round(getTrainGain(ch, statKey) * 2.6 * 100) / 100;
     const before = safeNum(ch.stats[statKey], 0);
@@ -3741,6 +4337,8 @@ function doDeepTrain(charId, statKey) {
 
     const newStories = checkStoryTriggers();
     queueStories(newStories);
+    // ★ 最后一轮：深培后立即检查互动剧情
+    if (typeof notifyInteractCheck === "function") notifyInteractCheck("deepTrain");
     saveGame();
     toast(`深培完成：${ch.name} ${STAT_LABEL[statKey] || statKey} → ${formatStat(ch.stats[statKey])}`);
     return true;
@@ -3751,14 +4349,19 @@ function doRest(charId) {
     const ch = getChar(charId);
     if (!ch) return false;
     if (charDailyUsed("rest", charId)) { toast(`${ch.name}今日已歇过了。`); return false; }
-    if (safeNum(ch.fatigue, 0) <= 0) { toast(`${ch.name}并不疲惫。`); return false; }
+    if (safeNum(ch.fatigue, 0) <= 0 && !isSick(ch)) { toast(`${ch.name}并不疲惫。`); return false; }
 
     markCharDaily("rest", charId);
+    bumpCharInteract(charId);          // ★ V40：记入累计互动（人物剧情条件用）
     const before = safeNum(ch.fatigue, 0);
     // ★ V37 P1-3：疲惫状态下恢复效率打 7 折（明确恢复路径，但不永久扣属性）
     const ex = getExhaustPenalty(ch);
     const rec = (20 + Math.random() * 5) * ex.recoverMult;
-    ch.fatigue = Math.max(0, before - rec);
+    // ★ V2.1 §六：病人休息恢复更慢（病中恢复乘 0.55），休息满一定量即康复
+    const recReal = isSick(ch) ? rec * 0.55 : rec;
+    ch.fatigue = Math.max(0, before - recReal);
+    // ★ V2.1 §六：休息是恢复途径之一 —— 降回 60 以下即痊愈
+    if (isSick(ch)) tryRecoverSick(ch, 0, "休息");
     // 休息可解除疲惫：降到 60 以下即解除
     if (safeNum(ch.fatigue, 0) < 60 && game.flags[EXHAUST_FLAG + "_" + ch.id]) {
         delete game.flags[EXHAUST_FLAG + "_" + ch.id];
@@ -3767,6 +4370,8 @@ function doRest(charId) {
         toast(`${ch.name} 歇够了，疲惫已解除。`);
     }
     game.notes.push(`【休息】${ch.name} 倦意 ${formatStat(before)} → ${formatStat(ch.fatigue)}。${ex.note}`);
+    // ★ V40 二次修复：休息也算一次日常互动，此处立即复查剧情，避免条件已满足却不触发
+    queueStories(checkStoryTriggers());
     saveGame();
     toast(`${ch.name} 倦意 ${formatStat(before)} → ${formatStat(ch.fatigue)}（不耗行动力）${ex.note ? "｜" + ex.note : ""}`);
     return true;
@@ -3781,20 +4386,25 @@ function doTeaRest(charId) {
     if (getTeaRestCount() >= 2) { toast("茶室今日已用过 2 次了。"); return false; }
     const lack = checkGoodsEnough({ huacha: 2 });
     if (lack.length) { toast("物资不足：" + lack.join("、")); return false; }
-    if (safeNum(ch.fatigue, 0) <= 0) { toast(`${ch.name}并不疲惫。`); return false; }
+    if (safeNum(ch.fatigue, 0) <= 0 && !isSick(ch)) { toast(`${ch.name}并不疲惫。`); return false; }
 
     payGoods({ huacha: 2 });
     game.dailyTeaRest = { day: safeNum(game.day, 1), count: getTeaRestCount() + 1 };
+    bumpCharInteract(charId);          // ★ V40：茶室调养同属日常互动
     const before = safeNum(ch.fatigue, 0);
     const ex = getExhaustPenalty(ch);
     const rec = (15 + Math.random() * 5) * ex.recoverMult;
     ch.fatigue = Math.max(0, before - rec);
+    // ★ V2.1 §六：茶室调养同样可用于病人康复（用现有的花茶，不引入稀有药品）
+    if (isSick(ch)) tryRecoverSick(ch, 0, "茶室调养");
     if (safeNum(ch.fatigue, 0) < 60 && game.flags[EXHAUST_FLAG + "_" + ch.id]) {
         delete game.flags[EXHAUST_FLAG + "_" + ch.id];
         if (game[EXHAUST_STREAK_KEY]) game[EXHAUST_STREAK_KEY][ch.id] = 0;
         game.notes.push(`【恢复】${ch.name} 经茶室调养，疲惫状态已解除。`);
     }
     game.notes.push(`【茶室调养】${ch.name} 倦意 ${formatStat(before)} → ${formatStat(ch.fatigue)}（耗花茶 ×2）。${ex.note}`);
+    // ★ V40 二次修复：茶室调养也算日常互动，立即复查剧情
+    queueStories(checkStoryTriggers());
     saveGame();
     toast(`${ch.name} 茶室调养：倦意 ${formatStat(before)} → ${formatStat(ch.fatigue)}`);
     return true;
@@ -3807,12 +4417,15 @@ function doTalk(charId) {
     if (charDailyUsed("talk", charId)) { toast(`今日已与${ch.name}聊过了。`); return false; }
 
     markCharDaily("talk", charId);
+    bumpCharInteract(charId);          // ★ V40：记入累计互动（人物剧情条件用）
     const gain = 1 + Math.floor(Math.random() * 3);
     ch.favor = Math.min(100, safeNum(ch.favor, 0) + gain);
     const line = pickTalkLine(ch);
     game.notes.push(`【闲谈】与${ch.name}闲聊片刻，好感 +${gain}。`);
     const newStories = checkStoryTriggers();
     queueStories(newStories);
+    // ★ 最后一轮：好感变化后立即检查互动剧情（文档 §三.2）
+    if (typeof notifyInteractCheck === "function") notifyInteractCheck("talk");
     saveGame();
     toast(`${ch.name}：${line}（好感 +${gain}）`);
     return true;
@@ -3986,7 +4599,8 @@ function doBuyGoods(gid, qty) {
     const gd = goodsData.find(g => g.id === gid);
     if (!gd) return false;
     const q = Math.max(1, Math.floor(safeNum(qty, 10)));
-    const unit = Math.floor(safeNum(gd.basePrice, 30) * safeNum(game.priceMod[gid], 1));
+    // ★ 最后一轮：单价统一走 getGoodsPrice()，保证"界面显示 = 扣款 = 存档"三者一致
+    const unit = getGoodsPrice(gid);
     const total = unit * q;
     const max = calcStockMax();
     const cur = safeNum(game.stock[gid], 0);
@@ -4001,12 +4615,156 @@ function doBuyGoods(gid, qty) {
     return true;
 }
 
-/** 每日市价浮动 */
-function refreshMarketPrice() {
-    goodsData.forEach(gd => {
-        const mod = 0.85 + Math.random() * 0.3;
-        game.priceMod[gd.id] = Math.round(mod * 100) / 100;
+/**
+ * ★ 最后一轮：把一个字符串搅拌成 [0,1) 的确定性随机数。
+ *   背景：seededUnit() 只做**一步** LCG，相邻种子（如 day*131+idx*977）会得到
+ *   几乎相同的输出，导致"各商品同涨同跌""价格长期不动"。这里先用字符串哈希
+ *   把 (天, 商品) 充分打散，再喂给 seededUnit，保证各商品、各天之间互相独立。
+ */
+function hashUnit(str, salt) {
+    const s = String(str) + "#" + String(salt == null ? "" : salt);
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = (h * 16777619) >>> 0;      // FNV-1a 32 位
+    }
+    // 再走两步 LCG，进一步打散
+    let x = h % 2147483647;
+    if (x <= 0) x += 2147483646;
+    x = (x * 16807) % 2147483647;
+    x = (x * 16807) % 2147483647;
+    return (x - 1) / 2147483646;
+}
+
+/**
+ * ★ 最后一轮：每日市价浮动（文档 二、市集价格）
+ *   - 单日涨跌幅 −8% ~ +8%；
+ *   - 硬性夹在基础价的 80% ~ 120% 之间，并带**均值回归**（偏离基准越多越容易被拉回），
+ *     避免随机游走长期贴在边界上导致价格永远不动；
+ *   - 每种商品独立抽取（种子由「天 + 商品 id」哈希而来，互不相关）；
+ *   - 同一天内反复刷新/切页/重开市集价格都不变；跨天才重新生成；
+ *   - 读档直接沿用存档里的当日价，不重抽。
+ *   priceMod[id]  = 相对基础价的倍率（0.8 ~ 1.2）
+ *   pricePrev[id] = 昨日相对基础价的倍率（用于算涨跌幅与方向）
+ *   priceDay      = 这份价格属于哪一天
+ */
+function refreshMarketPrice(forceDay) {
+    if (!game.priceMod || typeof game.priceMod !== "object") game.priceMod = {};
+    if (!game.pricePrev || typeof game.pricePrev !== "object") game.pricePrev = {};
+    const today = safeNum(forceDay, safeNum(game.day, 1));
+
+    // 价格已属于今天 → 不重抽（文档：同一天内价格必须稳定）
+    if (safeNum(game.priceDay, 0) === today && game.priceMod && Object.keys(game.priceMod).length) {
+        return;
+    }
+
+    goodsData.forEach((gd, idx) => {
+        const cur = Math.max(0.80, Math.min(1.20, safeNum(game.priceMod[gd.id], 1)));
+        // (天, 商品) → 独立且充分打散的 [0,1)
+        const u = hashUnit(gd.id, today + "-" + idx);
+        let next = cur * (1 + (u - 0.5) * 0.16);          // 单日基准 ±8%
+        // ★ 均值回归：离基准价越远，越往 1.0 拉回，防止长期贴边
+        next = next + (1.0 - cur) * 0.35;
+        next = Math.max(0.80, Math.min(1.20, next));
+        // ★ 均值回归可能把幅度放大到超过 ±8%（例如从 1.19 被拉回 1.0 时）。
+        //   文档要求"单日涨跌幅 −8% ~ +8%"，所以最后再夹一次相对 cur 的幅度。
+        const lo = Math.max(0.80, cur * 0.92);
+        const hi = Math.min(1.20, cur * 1.08);
+        next = Math.max(lo, Math.min(hi, next));
+        game.pricePrev[gd.id] = cur;
+        game.priceMod[gd.id] = Math.round(next * 1000) / 1000;
     });
+
+    // ★ 最后一轮：整数取整后幅度会被放大（如 28 → 25 就是 −11%）。
+    //   文档要求"单日涨跌幅 −8% ~ +8%"，所以按**取整后的实际单价**再夹一次，
+    //   保证玩家看到的数字（= 扣款数字）一定落在 ±8% 以内。
+    goodsData.forEach(gd => {
+        const base = safeNum(gd.basePrice, 30);
+        const prevMod = Math.max(0.80, Math.min(1.20, safeNum(game.pricePrev[gd.id], 1)));
+        const prevPrice = Math.floor(base * prevMod);
+        if (prevPrice <= 0) return;
+        const lo = Math.max(Math.floor(base * 0.80), Math.ceil(prevPrice * 0.92));
+        const hi = Math.min(Math.ceil(base * 1.20), Math.floor(prevPrice * 1.08));
+        let price = Math.floor(base * Math.max(0.80, Math.min(1.20, safeNum(game.priceMod[gd.id], 1))));
+        price = Math.max(1, Math.max(lo, Math.min(hi, price)));
+        // 关键：mod 必须能被 floor(base*mod) 精确还原成 price。
+        // 直接用 price/base 会因浮点截断回落 1（如 28/30=0.933 → floor(27.99)=27），
+        // 所以取一个"刚好不小于 price/base"的倍率，向上对齐到 3 位小数。
+        let mod = price / base;
+        mod = Math.ceil(mod * 1000) / 1000;
+        // 若仍还原不出目标价（浮点误差），再向上加一个最小刻度
+        let guard = 0;
+        while (Math.floor(base * mod) < price && guard++ < 5) {
+            mod = Math.round((mod + 0.001) * 1000) / 1000;
+        }
+        // 最终再确认不越界（上下界都要守，避免回落时把倍率压到 0.80 以下）
+        let guard2 = 0;
+        while (Math.floor(base * mod) > hi && guard2++ < 5) {
+            mod = Math.round((mod - 0.001) * 1000) / 1000;
+        }
+        if (Math.floor(base * mod) < lo) mod = lo / base;
+        mod = Math.max(0.80, Math.min(1.20, mod));
+        // 兜底：夹到 0.80 后可能还原不出 lo，向上微调直到满足
+        let guard3 = 0;
+        while (Math.floor(base * mod) < lo && guard3++ < 5) {
+            mod = Math.round((mod + 0.001) * 1000) / 1000;
+            if (mod > 1.20) break;
+        }
+        game.priceMod[gd.id] = Math.round(mod * 1000) / 1000;
+    });
+    game.priceDay = today;
+}
+
+/**
+ * ★ 最后一轮：进入市集前的兜底。
+ *   若当前存档还没有"当日价"（旧存档 / 新档），就地补生成一份；
+ *   已有当日价则什么都不做 —— 保证同一天反复打开市集价格绝不变。
+ */
+function ensureMarketPriceToday() {
+    const today = safeNum(game.day, 1);
+    const has = game.priceMod && typeof game.priceMod === "object" && Object.keys(game.priceMod).length;
+    if (safeNum(game.priceDay, 0) === today && has) return;
+    // 旧存档首次进来：把当前价当作"昨日价"，再生成今日价
+    if (!game.pricePrev || typeof game.pricePrev !== "object") {
+        game.pricePrev = JSON.parse(JSON.stringify(game.priceMod || {}));
+    }
+    refreshMarketPrice(today);
+    if (typeof saveGame === "function") saveGame();
+}
+
+/**
+ * ★ 最后一轮：取某商品"当日实际单价"。
+ *   界面显示、购买扣款、存档必须走同一个函数，保证三者一致。
+ */
+function getGoodsPrice(gid) {
+    const gd = goodsData.find(g => g.id === gid);
+    if (!gd) return 0;
+    const mod = Math.max(0.80, Math.min(1.20, safeNum(game.priceMod[gid], 1)));
+    return Math.floor(safeNum(gd.basePrice, 30) * mod);
+}
+
+/**
+ * ★ 最后一轮：涨跌方向与幅度（用于市集显示）。
+ *   返回 { price, dir:"up"|"down"|"flat", pct, cur, prev }
+ *   pct 以"相对昨日的实际单价变化"计算，和玩家看到的数字一致。
+ */
+function getPriceTrend(gid) {
+    const gd = goodsData.find(g => g.id === gid);
+    if (!gd) return { price: 0, dir: "flat", pct: 0, cur: 1, prev: 1 };
+    const base = safeNum(gd.basePrice, 30);
+    const cur = Math.max(0.80, Math.min(1.20, safeNum(game.priceMod[gid], 1)));
+    const prev = Math.max(0.80, Math.min(1.20, safeNum((game.pricePrev || {})[gid], cur)));
+    const price = Math.floor(base * cur);
+    const prevPrice = Math.floor(base * prev);
+    let dir = "flat", pct = 0;
+    if (price > prevPrice) {
+        dir = "up";
+        pct = prevPrice > 0 ? Math.round((price - prevPrice) / prevPrice * 100) : 0;
+    } else if (price < prevPrice) {
+        dir = "down";
+        pct = prevPrice > 0 ? Math.round((prevPrice - price) / prevPrice * 100) : 0;
+    }
+    return { price: price, dir: dir, pct: pct, cur: cur, prev: prev };
 }
 
 /* ---------- 9. 每日结算 ---------- */
@@ -4065,13 +4823,36 @@ function doDayEnd() {
         game.dailyCost = safeNum(game.dailyCost, 0) + wasteCost;
     }
 
-    // 疲劳恢复
+    // 疲劳恢复（★ V2.1 §六：生病时恢复变慢，但不处理也不会永久恶化）
     (game.characterList || []).forEach(c => {
         if (!c.unlocked) return;
-        const rec = CONFIG.DAY_RECOVER_FATIGUE * safeNum(c.fatigueTol, 1);
+        let rec = CONFIG.DAY_RECOVER_FATIGUE * safeNum(c.fatigueTol, 1);
+        if (isSick(c)) rec = rec * 0.55;    // 病中恢复明显放缓（文档：不处理时恢复变慢）
         c.fatigue = Math.max(0, safeNum(c.fatigue, 0) - rec);
     });
     journalLines.push("众人歇息一夜，倦意略有平复。");
+
+    // ★ V2.1 §六：生病判定（与疲劳挂钩，不完全随机）+ 康复检查
+    try {
+        const sickNow = updateSickState();
+        sickNow.forEach(c => {
+            journalLines.push(`【生病】${c.name} 连日操劳，终于撑不住病倒了，今日无法参与雅馆经营。`);
+            game.notes.push(`【生病】${c.name} 病倒（倦意 ${formatStat(c.fatigue)}）。建议安排休养。`);
+            pushSeenLog("sick", `${c.name} 病倒`);
+        });
+        // 康复检查：疲劳已自然降回 60 以下者自动痊愈（不会永久锁死）
+        (game.characterList || []).forEach(c => {
+            if (isSick(c) && safeNum(c.fatigue, 0) < 60) {
+                if (tryRecoverSick(c, 0, "休息")) journalLines.push(`【恢复】${c.name} 身子已见好。`);
+            }
+        });
+    } catch (e) { console.error("生病状态更新异常", e); }
+
+    // ★ V2.1 §七：疲劳状态提示（进入 60—79 / 80—99 各提示一次，回到正常后不再重复旧提示）
+    try {
+        const fatigueMsgs = updateFatigueNotices();
+        fatigueMsgs.forEach(msg => journalLines.push("【提示】" + msg));
+    } catch (e) { console.error("疲劳提示异常", e); }
 
     // 客人停留与离馆
     let leftCount = 0;
@@ -4186,6 +4967,25 @@ function doDayEnd() {
     checkCharacterUnlocks();
     const newStories = checkStoryTriggers();
     queueStories(newStories);
+    // ★ V2.1 / 最后一轮：互动剧情（双人/三人/四人）也在此统一检查。
+    //   原实现被 canPopupToday() 拦住 → 条件满足当天不登记，玩家要等到次日，
+    //   而页面又已显示"可解锁"，造成"显示可触发却不触发"。
+    //   现在改为：**登记**不受额度限制（条件一满足就登记），只有**播放**才受额度约束。
+    try {
+        // 生病剧情优先级最高（角色状态变化，玩家需要知道），但同样占当日额度
+        if (canPopupToday()) {
+            const sickList = checkSickStories();
+            if (sickList && sickList.length) {
+                markPopupToday(POPUP_KIND.SICK, sickList[0].key);
+                queueStories(sickList);
+            }
+        }
+        // 互动剧情：先登记（随时、无条件），再在额度允许时播放
+        registerInteractStories();
+        if (canPopupToday()) {
+            playPendingInteract();
+        }
+    } catch (e) { console.error("剧情检查异常", e); }
     checkChapterProgress();
     checkMainStory();
     checkEndingTrigger();
@@ -4203,99 +5003,227 @@ function doDayEnd() {
 /* ---------- 10. 随机事件 ---------- */
 
 const DAILY_EVENTS = [
+    /* =====================================================================
+     * ★ V4 随机事件池（文档 §六）—— 共 20 条：正面 5 / 负面 5 / 普通 10
+     *   · category 决定抽取权重：正面 40% / 负面 30% / 普通 30%
+     *   · 每日最多发生一条，且并非每天必定发生（75% 判定）
+     *   · 结果按游戏日固定（game.eventDone 幂等），刷新/读档不重抽、不重复领奖
+     *   · 任何惩罚不得使资源为负；不得让角色永久缺席
+     *   · 随机事件不能替代个人剧情或正式互动（V4 §六）
+     * ===================================================================== */
+
+    /* ---------------- 正面 5 条 ---------------- */
     {
-        id: "rainStorm", title: "骤雨狂风", cond: () => true,
-        text: "夜里一场骤雨，檐角漏了几处水。众人一起收拾到天亮。",
-        effect: () => { game.cleanScore = Math.max(0, safeNum(game.cleanScore, 100) - 6); return "庭院整洁度 -6。"; }
+        id: "guestVip", title: "贵客登门", category: "正面",
+        advance: false,
+        cond: () => safeNum(game.reputation, 0) >= 80,
+        text: "一位慕名而来的客人专程来访，听完演出后赞不绝口。客人离开时还约了几位友人改日再来。",
+        effect: () => { const gain = Math.floor(60 + Math.random() * 60);
+            game.silver = safeNum(game.silver, 0) + gain;
+            const r = addReputation(5);
+            return `当日进账 ${gain} 两，名声 +${Math.round(r)}。`; }
     },
     {
-        id: "marketSale", title: "市集大促", cond: () => true,
-        text: "市集今日大促，物资价格普遍走低。",
-        effect: () => { goodsData.forEach(g => { game.priceMod[g.id] = Math.round(safeNum(game.priceMod[g.id], 1) * 0.85 * 100) / 100; }); return "今日市价下调约 15%。"; }
+        id: "surpriseReward", title: "意外的赏赐", category: "正面",
+        advance: false,
+        cond: () => safeNum(game.day, 1) >= 2,
+        text: "一位客人对今日的招待十分满意，临走前额外留下了一份赏钱。",
+        effect: () => { const gain = Math.floor(35 + Math.random() * 45);
+            game.silver = safeNum(game.silver, 0) + gain;
+            return `额外赏钱 ${gain} 两。`; }
     },
     {
-        id: "literatiPost", title: "文人投稿", cond: () => true,
-        text: "有书生送来一册诗稿，愿在雅馆传阅。",
-        effect: () => { const r = addReputation(6 + Math.floor(Math.random() * 8)); return `名声 +${Math.round(r)}。`; }
+        id: "fameSpread", title: "雅名远扬", category: "正面",
+        advance: true,
+        cond: () => safeNum(game.reputation, 0) >= 120,
+        text: "近日来访的客人将雅馆的名声传了出去，今日又有几位新客慕名而来。",
+        effect: () => { const r = addReputation(14);
+            return `名声 +${Math.round(r)}。`; }
     },
     {
-        id: "cakeStolen", title: "糕点失窃", cond: () => safeNum(game.reputation, 0) >= 60,
-        text: "厨房备好的点心少了一屉，众人互相看了一眼，谁也没说话。",
-        effect: () => { game.stock.huacha = Math.max(0, safeNum(game.stock.huacha, 0) - 3); return "花茶 -3（被顺手带走）。"; }
+        id: "allTogether", title: "众人齐心", category: "正面",
+        advance: false,
+        cond: () => getWorkableChars().length >= 3,
+        text: "今日馆中事务格外顺利。几人各自帮了一把手，原本繁杂的工作很快便处理妥当。",
+        effect: () => { // 文档给出"减少少量疲劳 或 提升当日经营效率（二选一）"。
+            // 这里选"减少少量疲劳"（更稳定、不引入新的经营系数）。
+            const ws = getWorkableChars();
+            ws.forEach(c => { c.fatigue = Math.max(0, safeNum(c.fatigue, 0) - 5); });
+            return ws.length ? `众人各自搭了把手，全员倦意 -5。` : "事务很快处理妥当。"; }
     },
     {
-        id: "stringBreak", title: "琴弦断裂", cond: () => { const c = getChar("shen"); return c && c.unlocked; },
-        text: "沈清寒换弦时断了一根，他盯着那截断弦看了很久。",
-        effect: () => { const c = getChar("shen"); if (c) c.favor = Math.min(100, safeNum(c.favor, 0) + 3); return "沈清寒好感 +3。"; }
+        id: "luckyFind", title: "意外收获", category: "正面",
+        advance: false,
+        cond: () => true,
+        text: "整理库房时，众人发现一批尚能使用的纸墨、茶叶或香料。虽不算贵重，却正好派上用场。",
+        effect: () => { game.stock.xuanzhi = safeNum(game.stock.xuanzhi, 0) + 3;
+            game.stock.huacha = safeNum(game.stock.huacha, 0) + 2;
+            return "获得 宣纸 ×3、花茶 ×2。"; }
+    },
+
+    /* ---------------- 负面 5 条 ---------------- */
+    {
+        id: "badWeather", title: "恶劣天气", category: "负面",
+        advance: false,
+        cond: () => true,
+        text: "午后忽然风雨大作，原本准备出门的客人纷纷改了行程，今日来客比平时少了许多。",
+        effect: () => { // 文档：当日收入小幅下降（不扣存量银两，避免负数）
+            game.dailyIncome = Math.max(0, Math.floor(safeNum(game.dailyIncome, 0) * 0.85));
+            return "今日客人寥寥，收入略减。"; }
     },
     {
-        id: "guestFlower", title: "客人赠花", cond: () => safeNum(game.reputation, 0) >= 120,
-        text: "一位客人留下两枝新开的芍药，说是给馆里添些颜色。",
-        effect: () => { game.stock.flower = safeNum(game.stock.flower, 0) + 5; game.cleanScore = Math.min(100, safeNum(game.cleanScore, 100) + 3); return "花材 +5，庭院整洁度 +3。"; }
+        id: "guestTrouble", title: "客人闹事", category: "负面",
+        advance: false,
+        cond: () => safeNum(game.day, 1) >= 3,
+        text: "一位客人对安排颇有不满，在厅中高声抱怨。馆中人及时出面，才没有让事情继续扩大。",
+        effect: () => { // 文档：声望小幅下降；可提供安抚选项（不强制扣资源）
+            const r = addReputation(-6);
+            return `名声 ${Math.round(r)}（可安排一次妥善接待挽回）。`; }
     },
     {
-        id: "nightChat", title: "夜间闲谈", cond: () => true,
-        text: "夜里有人留在廊下闲谈，说起旧馆的一些零碎记忆。",
-        effect: () => { const unlocked = getWorkableChars(); if (unlocked.length) { const c = unlocked[Math.floor(Math.random() * unlocked.length)]; c.favor = Math.min(100, safeNum(c.favor, 0) + 4); return `${c.name} 好感 +4。`; } return "夜色安静。"; }
+        id: "itemDamaged", title: "物品损坏", category: "负面",
+        advance: false,
+        cond: () => (game.buildingList || []).some(b => safeNum(b.level, 0) > 0),
+        text: "忙乱之中，一件常用器具不慎摔坏。所幸没有伤到人，只需花些银两修缮或暂时停用。",
+        effect: () => { // 文档：支付合理维修费，或当日停用对应场所；**资源不足时不得扣成负数**。
+            const cost = 60;
+            const paid = Math.min(cost, Math.max(0, safeNum(game.silver, 0)));
+            game.silver = safeNum(game.silver, 0) - paid;
+            game.dailyCost = safeNum(game.dailyCost, 0) + paid;
+            return paid > 0
+                ? `修补器具，支出 ${paid} 两。`
+                : "手头实在紧，只能先将器物挪到一边。"; }
     },
     {
-        id: "accountError", title: "账本差错", cond: () => { const c = getChar("gu"); return c && c.unlocked; },
-        text: "顾行舟核对账目，发现一笔虚记的支出，冷冷哼了一声。",
-        effect: () => { const gain = Math.floor(15 + Math.random() * 25); game.silver = safeNum(game.silver, 0) + gain; return `追回错账 ${gain} 两。`; }
+        id: "lackHand", title: "临时缺人", category: "负面",
+        advance: false,
+        cond: () => (game.characterList || []).filter(c => c.unlocked).length >= 2,
+        text: "一名馆中人物今日状态不佳，无法承担原定工作。其他人临时补上，经营仍可继续，只是效率略受影响。",
+        effect: () => { // 文档：当日经营效率小幅下降；**不得让角色永久缺席** —— 只用当日倦意表达，次日自然恢复。
+            const ws = getWorkableChars();
+            if (!ws.length) return "无人可动，众人将就着把今日撑了过去。";
+            const c = ws[Math.floor(Math.random() * ws.length)];
+            c.fatigue = Math.min(100, safeNum(c.fatigue, 0) + 10);
+            return `${c.name} 今日状态不佳（倦意 +10，明日起自然恢复）。`; }
     },
     {
-        id: "jointPaint", title: "众人合绘", cond: () => { const c = getChar("lu"); return c && c.unlocked; },
-        text: "陆星遥铺开长纸，拉着众人各自添了一笔。",
-        effect: () => { const r = addReputation(8 + Math.floor(Math.random() * 10)); game.cleanScore = Math.min(100, safeNum(game.cleanScore, 100) + 4); return `名声 +${Math.round(r)}，庭院整洁度 +4。`; }
+        id: "rumor", title: "流言蜚语", category: "负面",
+        advance: false,
+        cond: () => safeNum(game.reputation, 0) >= 60,
+        text: "街巷间传来几句有关雅馆的闲话，虽无实据，却让部分客人暂时观望。",
+        effect: () => { // 文档：声望暂时小幅下降，后续可自然恢复或通过经营消除
+            const r = addReputation(-10);
+            game.flags.rumorSeen = true;
+            return `名声暂时 ${Math.round(r)}（经营几日便能自然回转）。`; }
     },
-    // ---- V33 扩充（文档 §6：事件池加到 16 条，且每 3~5 天至少 1 条 advance 事件）----
+
+    /* ---------------- 普通 10 条 ---------------- */
     {
-        id: "poetGathering", title: "过路诗会", advance: true,
+        id: "afternoonChat", title: "午后闲谈", category: "普通",
+        advance: false,
+        cond: () => true,
+        text: "午后客少，几人闲坐片刻。有人谈起近日见闻，有人只顾喝茶，几句闲话倒让忙碌的一天松快了些。",
+        effect: () => { // 文档：无数值效果
+            return "几句闲话，倒让忙碌的一天松快了些。"; }
+    },
+    {
+        id: "guestAskWord", title: "客人求字", category: "普通",
+        advance: false,
+        cond: () => { const c = getChar("lu"); return c && c.unlocked; },
+        text: "一位客人想请陆星遥题字，陆星遥斟酌片刻，写下一句清雅的祝词。客人满意而归。",
+        effect: () => { // 文档：获得少量银两或声望 —— 这里给银两
+            const gain = Math.floor(20 + Math.random() * 25);
+            game.silver = safeNum(game.silver, 0) + gain;
+            return `题字得酬 ${gain} 两。`; }
+    },
+    {
+        id: "newTeaTaste", title: "新茶试喝", category: "普通",
+        advance: false,
+        cond: () => { const c = getChar("wen"); return c && c.unlocked; },
+        text: "温如玉试制了一款新茶，邀众人品尝。有人嫌涩，有人觉得回甘不错，温如玉一一记下意见。",
+        effect: () => { // 文档：少量声望或仅触发文本
+            const r = addReputation(3);
+            game.stock.huacha = Math.max(0, safeNum(game.stock.huacha, 0) - 1);
+            return `名声 +${Math.round(r)}，花茶 -1。`; }
+    },
+    {
+        id: "tempMeet", title: "临时雅会", category: "普通",
+        advance: false,
         cond: () => safeNum(game.reputation, 0) >= 100,
-        text: "几位过路的书生见门前挂着灯，进来讨了纸笔，各题一首就散了。",
-        effect: () => { const r = addReputation(9 + Math.floor(Math.random() * 8)); game.stock.xuanzhi = Math.max(0, safeNum(game.stock.xuanzhi, 0) - 2); return `名声 +${Math.round(r)}，宣纸 -2。`; }
+        text: "几位客人临时提出举办小型雅会。馆中人商议后，若场地与物资充足便顺势安排；若条件不足，则礼貌改约。",
+        effect: () => { // 文档：条件充足时获得少量收入；**不足时不扣资源**
+            const enough = safeNum(game.cleanScore, 100) >= 40
+                && safeNum(game.stock.xuanzhi, 0) >= 1
+                && getAvailableWorkers().length >= 2;
+            if (!enough) return "场地与物资都不算宽裕，只好与客人礼貌改约（未扣除任何资源）。";
+            game.stock.xuanzhi = Math.max(0, safeNum(game.stock.xuanzhi, 0) - 1);
+            const gain = Math.floor(50 + Math.random() * 50);
+            game.silver = safeNum(game.silver, 0) + gain;
+            const r = addReputation(4);
+            return `小型雅会顺利办成，进账 ${gain} 两，名声 +${Math.round(r)}。`; }
     },
     {
-        id: "oldInkFound", title: "旧墨重见", advance: true,
-        cond: () => safeNum(game.day, 1) >= 5,
-        text: "搬动库房木箱时，箱底掉出一方旧砚，背面刻着两个字，磨得快看不清了。",
-        effect: () => { game.flags.oldStudy = true; addReputation(4); return "线索：旧书房。名声 +4。"; }
-    },
-    {
-        id: "merchantTip", title: "商客指点", advance: false,
-        cond: () => safeNum(game.reputation, 0) >= 130,
-        text: "一位行商临走时多说了两句，说城东的贵人们近来爱听旧曲，不爱新调。",
-        effect: () => { game.silver = safeNum(game.silver, 0) + 120; return "依他所言调整采买，省下 120 两。"; }
-    },
-    {
-        id: "catInYard", title: "狸奴入馆", advance: false,
+        id: "kitchenCat", title: "厨房来了猫", category: "普通",
+        advance: false,
         cond: () => true,
-        text: "一只三花猫不知从哪儿钻进来，蹲在石阶上晒太阳，赶也不走。",
-        effect: () => { game.cleanScore = Math.min(100, safeNum(game.cleanScore, 100) + 3); const unlocked = getWorkableChars(); if (unlocked.length) { const c = unlocked[Math.floor(Math.random() * unlocked.length)]; c.fatigue = Math.max(0, safeNum(c.fatigue, 0) - 4); return `众人围着猫笑了一场，${c.name} 倦意 -4。`; } return "众人围着猫笑了一场。"; }
+        text: "一只猫不知何时溜进厨房，苏砚辞嘴上说不能养，转头却把它抱到了门边。第二天，猫已经睡在他房门口。",
+        effect: () => { // 文档：无数值效果，可低频出现
+            const ws = getWorkableChars();
+            if (ws.length) { const c = ws[Math.floor(Math.random() * ws.length)]; c.fatigue = Math.max(0, safeNum(c.fatigue, 0) - 3); }
+            return "一只猫在馆里安了家，众人笑了一场。"; }
     },
     {
-        id: "letterFromPast", title: "无名来信", advance: true,
-        cond: () => safeNum(game.chapterId, 1) >= 2,
-        text: "一封没有署名的信，只写着「旧规未必是错，也未必全对」，压在门缝里。",
-        effect: () => { game.flags.clue_oldRule = true; addReputation(3); return "线索：旧规。名声 +3。"; }
-    },
-    {
-        id: "rainyDayTea", title: "雨日围炉", advance: false,
+        id: "rainStorm", title: "骤雨狂风", category: "普通",
+        advance: false,
         cond: () => true,
-        text: "下了整日的小雨，没有客人。众人索性把炭盆端到廊下，煮了一壶茶。",
-        effect: () => { const unlocked = getWorkableChars(); unlocked.forEach(c => { c.fatigue = Math.max(0, safeNum(c.fatigue, 0) - 6); }); return unlocked.length ? "全员倦意 -6。" : "茶水暖了手。"; }
+        text: "雨势渐大，最后一位客人仍想入馆。沈清寒看了看窗外，只说今日不接了。苏砚辞本想劝两句，最终也没再开口。",
+        effect: () => { // 文档：当日客流轻微下降；体现角色有自主边界
+            game.dailyIncome = Math.max(0, Math.floor(safeNum(game.dailyIncome, 0) * 0.92));
+            return "今日提前落了门，客流略减。"; }
     },
     {
-        id: "rivalWatch", title: "同行探看", advance: false,
-        cond: () => safeNum(game.reputation, 0) >= 180,
-        text: "对街新开的铺子派了人来，在堂上坐了半日，把价目看了个仔细。",
-        effect: () => { game.flags.rivalNoticed = true; return "名声在外，同行已注意到这边。"; }
+        id: "literatiPost", title: "文人投稿", category: "普通",
+        advance: true,
+        cond: () => true,
+        text: "一位文人送来新作，希望馆中人点评。几人各有看法，最后给出中肯建议，文人道谢离去。",
+        effect: () => { const r = addReputation(6 + Math.floor(Math.random() * 8));
+            return `名声 +${Math.round(r)}。`; }
     },
     {
-        id: "cleanSweepDay", title: "彻扫庭除", advance: false,
-        cond: () => safeNum(game.cleanScore, 100) <= 80,
-        text: "有人提议干脆把里外彻底扫一遍，连梁上的灰都掸了。",
-        effect: () => { game.cleanScore = Math.min(100, safeNum(game.cleanScore, 100) + 12); return "庭院整洁 +12。"; }
+        id: "cakeStolen", title: "糕点失窃", category: "普通",
+        advance: false,
+        cond: () => safeNum(game.reputation, 0) >= 60,
+        text: "茶点少了一盘。温如玉看了看空盘，又看了看众人，似乎已经猜到是谁拿的，却只让厨房再备一份。",
+        effect: () => { // 文档：无数值效果或少量物资消耗，**不惩罚玩家**
+            game.stock.huacha = Math.max(0, safeNum(game.stock.huacha, 0) - 1);
+            return "少了一盘茶点，厨房再备一份便是（花茶 -1）。"; }
+    },
+    {
+        id: "stringBreak", title: "琴弦断裂", category: "普通",
+        advance: false,
+        cond: () => { const c = getChar("shen"); return c && c.unlocked; },
+        text: "听琴阁传来一声轻响，琴弦断了。沈清寒检查后发现只是旧弦磨损，换上备用弦便可继续使用。",
+        effect: () => { // 文档：轻微维修成本；**若正式互动《谁弄坏了琴》尚未触发，不得强制触发该互动**。
+            // 本事件只做资源结算，绝不写入互动/剧情标记。
+            const cost = 30;
+            const paid = Math.min(cost, Math.max(0, safeNum(game.silver, 0)));
+            game.silver = safeNum(game.silver, 0) - paid;
+            game.dailyCost = safeNum(game.dailyCost, 0) + paid;
+            const c = getChar("shen");
+            if (c) c.favor = Math.min(100, safeNum(c.favor, 0) + 2);
+            return paid > 0
+                ? `换上备用弦，支出 ${paid} 两。沈清寒好感 +2。`
+                : "翻出旧弦勉强换上。沈清寒好感 +2。"; }
+    },
+    {
+        id: "guestFlower", title: "客人赠花", category: "普通",
+        advance: false,
+        cond: () => safeNum(game.reputation, 0) >= 80,
+        text: "一位客人送来一束花。苏砚辞嘴上嫌弃摆放麻烦，最后却亲自挑了个花瓶，把花放在自己房门旁。",
+        effect: () => { // 文档：无数值效果或少量声望
+            game.stock.flower = safeNum(game.stock.flower, 0) + 3;
+            const r = addReputation(2);
+            return `花材 +3，名声 +${Math.round(r)}。`; }
     }
 ];
 
@@ -4318,7 +5246,38 @@ function rollDailyEvent() {
     if (!pool.length) pool = all;
     if (!pool.length) { RUNTIME.dayEvent = null; return null; }
     const seed = safeNum(game.dayEventSeed, makeDaySeed(safeNum(game.day, 1)));
-    const pick = pool[Math.abs(seed) % pool.length];
+
+    // ★ V2.1（§五）：按 正面40% / 负面30% / 普通30% 抽取类型，再在类型内按种子确定。
+    //   顺序要求：先判定"今日是否发生"，再按权重抽类型 —— 并非每天必定发生。
+    //   使用当日种子做确定性随机（mulberry 风格），保证切换页面/刷新不重抽。
+    const byCat = { "正面": [], "负面": [], "普通": [] };
+    pool.forEach(e => {
+        const cat = e.category || (e.advance ? "普通" : "普通");
+        if (!byCat[cat]) byCat[cat] = [];
+        byCat[cat].push(e);
+    });
+    const rnd = seededUnit(seed);            // [0,1) 确定性
+    let pickedCat = null;
+    if (rnd < 0.40) pickedCat = "正面";
+    else if (rnd < 0.70) pickedCat = "负面";
+    else pickedCat = "普通";
+
+    // 当天是否发生：约 75% 概率发生（"并非每天必定发生"，且"每天最多一个"）
+    const happenRoll = seededUnit(seed * 7919 + 13);
+
+    let pick = null;
+    if (happenRoll < 0.75) {
+        let use = (byCat[pickedCat] && byCat[pickedCat].length) ? byCat[pickedCat] : pool;
+        pick = use[Math.abs(seed) % use.length];
+    }
+    // ★ V2.1 平衡：若逼近 5 天仍未出现"推进类"事件，则当日强制改为推进事件。
+    //   背景：文档 §五 要求"每天最多一个随机事件"且"并非每天必定发生"，
+    //   这会让原本"每 3~5 天至少 1 条 advance"的节奏被拉长（回归测试实测 6 天）。
+    //   这里在保底窗口内强制取出 advance 事件，兼顾两种要求。
+    if (!pick && daysSinceAdvanceEvent() >= 3) {
+        const advPool = all.filter(e => e.advance);
+        if (advPool.length) pick = advPool[Math.abs(seed) % advPool.length];
+    }
 
     // ★ V40 修复：事件「效果」必须只应用一次。
     //   背景（原 Bug）：RUNTIME.dayEvent 只是内存态，刷新页面 / 重新读档后即被清空，
@@ -4332,12 +5291,30 @@ function rollDailyEvent() {
     if (game.eventDone[doneKey]) {
         // 本日事件已结算过：用已存档的文案恢复展示，跳过 effect()
         const rec = game.eventDone[doneKey];
-        RUNTIME.dayEvent = { day: safeNum(game.day, 1), id: rec.id, title: rec.title, text: rec.text, effect: rec.effect || "" };
+        // ★ V2.1：当日"无事件 / 顺延"也要能正确恢复到空状态，避免返回一个空壳对象
+        if (!rec || !rec.id) { RUNTIME.dayEvent = null; return null; }
+        RUNTIME.dayEvent = { day: safeNum(game.day, 1), id: rec.id, title: rec.title, text: rec.text, effect: rec.effect || "", category: rec.category || "" };
         return RUNTIME.dayEvent;
+    }
+    // 今日无事件：也记账，避免刷新后又"重抽"出事件
+    if (!pick) {
+        game.eventDone[doneKey] = { id: "", title: "", text: "", effect: "", category: "", none: true };
+        RUNTIME.dayEvent = null;
+        return null;
+    }
+    // ★ V2.1：随机事件也占"每日最多主动弹出一段"的额度（§五）。
+    //   若今日额度已被互动剧情/生病剧情用掉，事件顺延到次日再判（不丢失、不重抽）。
+    //   例外：推进类（advance）事件是主线刺激，文档 §一.9 明确"不得让主线被堵住"，
+    //   因此不受额度限制，保证每 3~5 天必有推进。
+    if (!pick.advance && !canPopupToday()) {
+        game.eventDone[doneKey] = { id: "", title: "", text: "", effect: "", category: "", deferred: true };
+        RUNTIME.dayEvent = null;
+        return null;
     }
     try { effText = pick.effect() || ""; } catch (x) { console.error("事件效果异常", x); }
     if (pick.advance) game.lastAdvanceEventDay = safeNum(game.day, 1);
-    game.eventDone[doneKey] = { id: pick.id, title: pick.title, text: pick.text, effect: effText };
+    markPopupToday(POPUP_KIND.EVENT);
+    game.eventDone[doneKey] = { id: pick.id, title: pick.title, text: pick.text, effect: effText, category: pick.category || "" };
     // 只保留最近 30 天的记录，避免存档无限膨胀（超出部分对本机制已无意义）
     const keepDays = [];
     Object.keys(game.eventDone).forEach(k => {
@@ -4352,9 +5329,17 @@ function rollDailyEvent() {
             if (Number.isFinite(n) && n < cutoff) delete game.eventDone[k];
         });
     }
-    RUNTIME.dayEvent = { day: safeNum(game.day, 1), id: pick.id, title: pick.title, text: pick.text, effect: effText };
+    RUNTIME.dayEvent = { day: safeNum(game.day, 1), id: pick.id, title: pick.title, text: pick.text, effect: effText, category: pick.category || "" };
     game.notes.push(`【今日事件】${pick.title}：${pick.text} ${effText}`);
     return RUNTIME.dayEvent;
+}
+
+/** 由种子生成 [0,1) 的确定性随机数（同一 seed 恒等，保证"当天结果固定"） */
+function seededUnit(seed) {
+    let x = Math.abs(Math.floor(safeNum(seed, 1))) % 2147483647;
+    if (x <= 0) x += 2147483646;
+    x = (x * 16807) % 2147483647;
+    return (x - 1) / 2147483646;
 }
 
 /* ---------- 10.5 每日事务（策划案 V2 补充 §3 / 文档 §4） ---------- */
@@ -5462,6 +6447,158 @@ const INTERACT_DEFS = [
         traits: ["慷慨赠礼"], cooldown: 6, weight: 7,
         text: () => "客人赠了一坛好酒。\n谢临川嘴上说着「这酒也就那样」，\n转头已经让人搬进了后院。",
         effect: () => ({ log: "客人赠酒，谢临川嘴上嫌弃却收下了", goods: { wine: 2 } })
+    },
+
+    /* ============================================================
+       ★ V4 日常闲谈（文档 §五）
+       ------------------------------------------------------------
+       与正式互动分开：短文本，可在日结 / 场所访问 / 角色空闲时随机出现。
+       按要求「同一条可设置冷却或低频重复，不发放重要奖励，也不占用正式剧情触发次数」：
+         · type: "idle"  —— 只进入每日闲谈池，不参与接待插曲
+         · cooldown 较大 —— 低频重复，避免同一条天天出现
+         · 不设置 favor / bond 等奖励，只记一句日志
+       ============================================================ */
+    {
+        id: "chat_su_teases_shen", type: "idle", chars: ["su", "shen"],
+        traits: [], cooldown: 5, weight: 7,
+        text: () => "苏砚辞又在琴室门口探头，问沈清寒今日是否有空。沈清寒头也不抬地说没有。苏砚辞笑着说自己还没说要做什么，沈清寒却已经把琴谱往里收了收。",
+        effect: () => ({ log: "苏砚辞逗沈清寒" })
+    },
+    {
+        id: "chat_gu_wine_bill", type: "idle", chars: ["xie", "gu"],
+        traits: [], cooldown: 5, weight: 7,
+        text: () => "谢临川刚拿起酒壶，顾行舟便下意识翻开账本。谢临川看了他一眼，问他是不是连自己喝了几口都要记。顾行舟答道：若你肯付钱，我也不必记得这么清楚。",
+        effect: () => ({ log: "顾行舟与酒账" })
+    },
+    {
+        id: "chat_wen_notices_lu", type: "idle", chars: ["wen", "lu"],
+        traits: [], cooldown: 5, weight: 7,
+        text: () => "陆星遥一整日都没怎么说话。温如玉没有追问，只在画室门口放下一盏温茶。等他离开时，茶盏已经空了。",
+        effect: () => ({ log: "温如玉察觉心事" })
+    },
+    {
+        id: "chat_xie_old_habit", type: "idle", chars: ["xie"],
+        traits: [], cooldown: 5, weight: 7,
+        text: () => "谢临川嘴上总嫌雅馆规矩多，却在众人散席后主动将椅子归回原位。有人问起，他只说是不想明日被顾行舟念叨。",
+        effect: () => ({ log: "谢临川遵守旧习" })
+    },
+    {
+        id: "chat_dinner_seat", type: "idle", chars: ["su", "gu", "wen"],
+        traits: [], cooldown: 5, weight: 7,
+        text: () => "六个人难得一起用膳，苏砚辞嫌自己的位置离菜太远，顾行舟提醒他刚才是自己先挑的座位。温如玉默默把菜往中间挪了挪，争执便就此结束。",
+        effect: () => ({ log: "饭桌上的座位" })
+    },
+    {
+        id: "chat_missing_dessert", type: "idle", chars: ["xie", "su", "wen"],
+        traits: [], cooldown: 5, weight: 7,
+        text: () => "厨房少了一盘点心。众人各有说辞，谢临川坚持自己只是路过，苏砚辞则说自己只拿了一块。温如玉看着空盘，决定下回多备一些。",
+        effect: () => ({ log: "谁拿了点心" })
+    },
+
+    /* ============================================================
+       ★ V4 互动剧情（文档 §三 双人 / §四 三人）
+       ------------------------------------------------------------
+       与上面的"接待插曲"共用同一套引擎，但有三个区别：
+         type: "story"    —— 由 checkInteractStoryTriggers() 独立调度，
+                             不参与接待时的随机插曲抽取
+         once: true       —— 每段仅触发一次（game.interactStoryDone 持久化）
+         favorAll: 60     —— 要求 chars 中**所有角色**好感均 ≥ 60（V4 §七）
+       互动之间不互为前置，不影响主线；每日最多触发一段（V4 §七）。
+       V4 已取消「雪落清晏」「失窃的账本」两段六人互动。
+       ============================================================ */
+
+    /* ---------- 双人互动（15 段，六人两两组合各一段） ---------- */
+    {
+        id: "is_qin_buhe", type: "story", chars: ["shen", "su"], once: true, favorAll: 60,
+        title: "琴不合拍",
+        text: () => ["苏砚辞忽然提出，想与沈清寒合作一场琴舞表演。\n沈清寒听完，只问了一句：“曲目定了吗？”\n“还没。”苏砚辞笑道，“所以才来找你商量。”\n沈清寒显然不太相信这句话。他认为舞步太过随性，苏砚辞却嫌他的琴声拘谨。两人排练了数日，仍旧谁也说服不了谁。\n直到一次排练中，苏砚辞临时改了舞步。沈清寒原本已经准备收尾，却在看见他的动作后，顺势将琴音转了个调。\n一段原本不在曲谱里的旋律，就这样接了下去。\n曲终时，两人都愣了一下。苏砚辞先笑出声，说原来沈清寒也不是只会照着谱子弹琴。\n沈清寒没有接话，只将琴谱合上：“明日再试一次。”\n苏砚辞挑眉：“这回可是你主动约我。”\n“若你明日不迟到。”\n两人仍旧互相嫌弃，第二天却都准时到了琴室。"].join("\n")
+    },
+    {
+        id: "is_hua_zhong_ren", type: "story", chars: ["shen", "lu"], once: true, favorAll: 60,
+        title: "画中人",
+        text: () => ["陆星遥近日常去琴室作画。沈清寒抚琴时不喜旁人打扰，却也没有赶他离开，只在每次曲终后问一句画好了没有。\n某日，陆星遥将画递给他。画中的沈清寒垂眸抚琴，眉眼间少了平日的冷淡，像是终于从繁杂事务里得了片刻安宁。\n沈清寒看了许久，说画得不像。\n陆星遥以为他不满意，正要收回，沈清寒却补了一句：“我平日不是这样。”\n“我知道。”陆星遥说，“所以才想把这一刻画下来。”\n沈清寒没有再要求修改，只问这幅画能否留在琴室。陆星遥点头，将画挂在了窗边。\n此后沈清寒仍旧不喜欢有人围观，却再没有阻止陆星遥来作画。"].join("\n")
+    },
+    {
+        id: "is_yizhan_lengcha", type: "story", chars: ["shen", "wen"], once: true, favorAll: 60,
+        title: "一盏冷茶",
+        text: () => ["温如玉发现沈清寒近来总是练琴到很晚，送去的茶常常原封不动地放凉。\n这日，他没有像往常一样把茶放下便走，而是坐在琴室一旁，等沈清寒弹完一曲。\n沈清寒看见茶盏，才想起自己又忘了喝。\n“茶凉了。”他说。\n“我知道。”温如玉笑道，“所以这回带了新的。”\n沈清寒接过茶盏，忽然问温如玉每日忙着照料众人，是否也会觉得疲倦。\n温如玉没想到他会问起自己，片刻后才答：“自然会，只是总觉得还有事情没做完。”\n沈清寒点点头，没有再劝。他将琴收好，陪温如玉坐了一会儿。\n那天琴室里的茶终于没有凉透。"].join("\n")
+    },
+    {
+        id: "is_qinxian_zhangben", type: "story", chars: ["shen", "gu"], once: true, favorAll: 60,
+        title: "琴弦与账本",
+        text: () => ["顾行舟核对器物账目时，发现琴室的维修开支已经拖了许久。他去找沈清寒询问，才知道旧琴有几处磨损，沈清寒一直打算自己修补。\n顾行舟听完便皱起眉：“该换的东西就换，省下这点钱，坏了反而更麻烦。”\n沈清寒只说琴还能用。\n两人僵持半晌，最后顾行舟亲自检查琴身，发现确实只需更换一处零件，不必整张换新。\n他将费用记进账本，沈清寒则答应以后器物有损便及时告知。\n“你倒是很会替雅馆省钱。”沈清寒说。\n“我只是讨厌不必要的损耗。”顾行舟合上账本，“包括人的。”\n沈清寒看了他一眼，没有反驳。"].join("\n")
+    },
+    {
+        id: "is_bucheng_shi", type: "story", chars: ["shen", "xie"], once: true, favorAll: 60,
+        title: "不成诗的夜",
+        text: () => ["谢临川夜里睡不着，便抱着酒壶去了琴室。他说自己忽然有了几句诗，想请沈清寒配一段曲子。\n沈清寒问他诗在哪里。\n谢临川翻了半天，只找出一张写了两句的纸。沈清寒看过后，沉默片刻，还是抬手拨了几下琴弦。\n谢临川听着听着，又觉得原来的诗不合适，索性撕了重写。如此反复几次，窗外天色都快亮了，诗仍旧没有写完。\n沈清寒终于停琴，问他还要改几次。\n谢临川笑道：“好诗自然要慢慢来。”\n“那便等你写完再来。”\n谢临川本以为他会不耐烦，没想到沈清寒只是重新添了炭火。那一夜，诗没写成，两人却难得安静地听完了一场雨。"].join("\n")
+    },
+    {
+        id: "is_yifu_huaxiang", type: "story", chars: ["su", "lu"], once: true, favorAll: 60,
+        title: "一幅画像",
+        text: () => ["苏砚辞在画室里发现一幅尚未收好的画像。画中人正坐在窗边看书，神情安静，与平日里爱说笑的他大不相同。\n他一眼认出那是自己，立刻问陆星遥为何把他画得如此老实。\n陆星遥说，只是恰好看见他那日没有说话。\n苏砚辞嘴上嫌弃画得不像，目光却在画上停留了许久。他问能不能再画一幅，这次要画得风流些。\n陆星遥答应了，却说要等他真正安静坐下来。\n苏砚辞当即摆出姿势，没过一会儿便忍不住东张西望。\n陆星遥没有催他，只将那幅旧画像收好。苏砚辞离开时，又悄悄折回来问，画能不能送给他。"].join("\n")
+    },
+    {
+        id: "is_touxian", type: "story", chars: ["su", "wen"], once: true, favorAll: 60,
+        title: "偷闲",
+        text: () => ["苏砚辞原本答应帮温如玉整理茶室，临到约定时辰，却躲在廊下装作没听见。\n温如玉找到他时，他正拿着一块点心，声称自己是在“补充体力”。\n“那吃完便来帮忙。”温如玉说。\n苏砚辞只好跟着进了茶室，一边整理茶具，一边抱怨事情太多。温如玉并不与他争辩，只将最轻的活计留给他。\n忙完后，苏砚辞发现温如玉一直没顾上喝茶，便主动替他倒了一盏。\n温如玉有些意外。苏砚辞立刻说自己只是怕他累倒，明日没人给自己泡茶。\n温如玉笑着接过茶盏，没有拆穿他。"].join("\n")
+    },
+    {
+        id: "is_jiuqian_shuifu", type: "story", chars: ["su", "gu"], once: true, favorAll: 60,
+        title: "酒钱谁付",
+        text: () => ["苏砚辞拿着一张花材开支单去找顾行舟报账，顾行舟看了一眼，便指出其中几笔数目对不上。\n苏砚辞说花是为了雅集准备的，顾行舟却认为账目不能凭一句“为了雅集”便算清楚。\n两人你来我往地争了半天，最后发现是店家将两次送货的单据写在了一起。\n账目核清后，顾行舟照例将费用记下。苏砚辞本以为自己又要被训一顿，没想到顾行舟只提醒他下次把单据收好。\n“你今日倒是好说话。”苏砚辞说。\n“因为今日确实不是你的错。”\n苏砚辞笑着离开，走到门口又回头补了一句：“那下回酒钱也麻烦顾先生通融。”\n顾行舟当即把账本合上。"].join("\n")
+    },
+    {
+        id: "is_shui_geng_hui_pianren", type: "story", chars: ["su", "xie"], once: true, favorAll: 60,
+        title: "谁更会骗人",
+        text: () => ["一位客人对雅馆里一幅旧画颇感兴趣，追问画中人的来历。苏砚辞不想让客人继续打听，便随口编了个故事；谢临川听出他在圆场，索性接过话头，将故事说得愈发离奇。\n两人一唱一和，竟把客人哄得十分满意。客人离开后，苏砚辞问谢临川究竟知不知道画的来历。\n谢临川摇头，说自己只是觉得他的故事太过简陋，忍不住添了几句。\n苏砚辞笑骂他多事，又问若是下次再遇到这种事怎么办。\n“自然还是你先开口。”谢临川说，“我负责把话说圆。”\n两人相视一笑，像是已经商量好了下一次如何捉弄旁人。"].join("\n")
+    },
+    {
+        id: "is_huawai_zhiren", type: "story", chars: ["lu", "wen"], once: true, favorAll: 60,
+        title: "一盏春茶",
+        text: () => ["温如玉发现陆星遥最近总是待在画室里，连用膳都忘了。\n他特意泡了一壶新茶送过去，却发现陆星遥正对着一张空白画纸发呆。\n温如玉没有催促，只是坐在一旁慢慢品茶。过了许久，陆星遥终于落笔，画的却不是窗外春景，而是温如玉品茶时的模样。\n温如玉看着画，笑问他为何不画茶。\n陆星遥答道：「茶会凉，人却不会一直坐在这里。」\n温如玉没有再问，只将那幅画轻轻放在桌边。此后他偶尔仍会送茶去画室，却不再催促陆星遥作画。"].join("\n")
+    },
+    {
+        id: "is_jiuzhang", type: "story", chars: ["lu", "gu"], once: true, favorAll: 60,
+        title: "旧画与旧账",
+        text: () => ["陆星遥整理旧画时，发现画纸背面有一串模糊的数字。他拿去问顾行舟，顾行舟看过后，认出那像是旧馆时期的物资编号。\n两人翻出旧账，逐项核对，终于找到当年购置纸墨的记录。记录并不能说明画是谁所作，却证明这批画纸曾被送往旧馆内院。\n陆星遥原本有些失望，顾行舟却说，能确定纸张来源，已经比毫无头绪强得多。\n陆星遥将数字抄在画册里，顾行舟则把账页重新收好。两人都没有说出口，但都明白这次发现或许会在日后派上用场。"].join("\n")
+    },
+    {
+        id: "is_zuihou_tihua_2", type: "story", chars: ["lu", "xie"], once: true, favorAll: 60,
+        title: "醉后题画",
+        text: () => ["谢临川喝醉后，忽然兴致大发，非要陆星遥为自己作画。\n陆星遥本想拒绝，温如玉却觉得难得见谢临川如此认真，便替他整理衣冠。\n谢临川坐在画前，摆出一副风流倜傥的模样，结果没过多久便睡着了。\n陆星遥没有叫醒他，而是画下了他醉酒后的真实模样。\n第二天，谢临川看到画像，嚷嚷着要毁掉它。\n温如玉却说，这幅画比他平日里那些自夸的画像真实得多。\n谢临川一时语塞。最后，他还是把画收了起来，只说不许挂到厅堂里。"].join("\n")
+    },
+    {
+        id: "is_jinri_yingkui", type: "story", chars: ["wen", "gu"], once: true, favorAll: 60,
+        title: "今日盈亏",
+        text: () => ["温如玉发现顾行舟连续几日都在核算经营账目，连用膳时也不肯放下算盘。他劝顾行舟先休息片刻，顾行舟却说账目尚未核完。\n温如玉没有继续劝，只将饭菜放在他手边。过了许久，顾行舟终于停下笔，发现饭菜已经凉了。\n他难得没有抱怨，只问温如玉为何总是先照顾别人。\n温如玉笑着说，自己早已习惯。顾行舟听后沉默了一会儿，随后将账本合上，主动提出明日替他分担茶室的采买。\n温如玉没有推辞，只提醒他别把这笔人情也记到账上。"].join("\n")
+    },
+    {
+        id: "is_jiejiu", type: "story", chars: ["wen", "xie"], once: true, favorAll: 60,
+        title: "戒酒一日",
+        text: () => ["温如玉发现谢临川近来饮酒过量，便劝他至少今日少喝一些。谢临川自然不肯，声称酒是诗兴所需，少了酒便写不出好诗。\n温如玉没有与他争辩，只将酒壶收到了柜子里，又给他泡了一盏茶。\n谢临川起初百般抱怨，后来却发现茶香清爽，便顺势坐下喝了几口。他一边喝茶，一边仍不忘说些俏皮话。\n温如玉问他今日是否能不饮酒。谢临川想了想，终于点头，说只戒一日。\n温如玉笑着答应，没有要求他许下更远的承诺。"].join("\n")
+    },
+    {
+        id: "is_shi_di_jiuqian", type: "story", chars: ["gu", "xie"], once: true, favorAll: 60,
+        title: "酒账",
+        text: () => ["谢临川又一次欠下了酒钱。\n顾行舟忍无可忍，决定给他立一份专门的酒账，每喝一壶便记一笔。\n谢临川对此毫不在意，甚至主动提议，不如以诗抵账。\n顾行舟冷笑，表示诗不能当银子用。\n于是谢临川每天都往账本里写诗，顾行舟则在旁边批注，逐渐将一本严肃的账本变成了两人的斗嘴记录。\n某日，顾行舟翻到最后一页，发现谢临川竟然认真写了一首诗，题为《谢君不弃》。\n他第一次没有在旁边写下批注。"].join("\n")
+    },
+
+    /* ---------- 三人互动（3 段，V4 §四；不替代双人互动） ---------- */
+    {
+        id: "is_shui_nonghuai_qin", type: "story", chars: ["shen", "su", "gu"], once: true, favorAll: 60,
+        title: "谁弄坏了琴",
+        text: () => ["某日，沈清寒发现琴室里的琴弦断了。\n他怀疑苏砚辞练舞时不小心碰坏了琴，苏砚辞却坚称自己从未进过琴室。\n顾行舟被两人拉来评理，结果发现琴弦并非被外力弄断，而是使用过久。\n沈清寒沉默不语，苏砚辞则趁机调侃他连琴都不肯换。\n顾行舟最终开出一张修琴的账单，让两人一人承担一半。\n两人都不服气，争执半天，最后却一起去找修琴师傅。"].join("\n")
+    },
+    {
+        id: "is_zuihou_tihua_3", type: "story", chars: ["lu", "wen", "xie"], once: true, favorAll: 60,
+        title: "醉后题画",
+        text: () => ["谢临川喝醉后，突然兴致大发，非要陆星遥为自己作画。\n陆星遥本想拒绝，温如玉却觉得难得见谢临川如此认真，便替他整理衣冠。\n谢临川坐在画前，摆出一副风流倜傥的模样，结果没过多久便睡着了。\n陆星遥没有叫醒他，而是画下了他醉酒后的真实模样。\n第二天，谢临川看到画像，嚷嚷着要毁掉它。\n温如玉却说，这幅画比他平日里那些自夸的画像真实得多。\n谢临川一时语塞。"].join("\n")
+    },
+    {
+        id: "is_shui_cai_shi_zhaopai", type: "story", chars: ["su", "lu", "wen"], once: true, favorAll: 60,
+        title: "谁才是雅馆的招牌",
+        text: () => ["雅馆准备举办一场宣传雅集。\n苏砚辞认为自己舞姿出众，应该站在最显眼的位置；陆星遥觉得宣传画才是吸引客人的关键；温如玉则认为茶会才是雅馆的特色。\n三人争执不下，最后决定各自设计一场活动。\n结果三场活动同时举办，雅馆忙得不可开交。\n直到最后，三人不得不合作，才终于顺利完成雅集。"].join("\n")
     }
 ];
 
@@ -5475,6 +6612,285 @@ function ensureInteractState() {
     if (!game.dailyInteract || typeof game.dailyInteract !== "object") game.dailyInteract = { day: 0, ids: [] };
     if (!Array.isArray(game.dailyInteract.ids)) game.dailyInteract.ids = [];
     if (!Array.isArray(game.seenLog)) game.seenLog = [];
+    // ★ V2.1：互动剧情（双人/三人/六人）的"仅一次"与"每日一次"记账
+    if (!game.interactStoryDone || typeof game.interactStoryDone !== "object") game.interactStoryDone = {};
+    if (!game.interactStoryDay || typeof game.interactStoryDay !== "object") {
+        game.interactStoryDay = { day: 0, ids: [] };
+    }
+    if (!Array.isArray(game.interactStoryDay.ids)) game.interactStoryDay.ids = [];
+}
+
+/* ---------- V2.1 互动剧情调度 ---------- */
+
+/**
+ * 判断某段互动剧情当前是否满足触发条件（文档 §一 · 互动）：
+ *   · 所有参与角色均已解锁
+ *   · 所有参与角色好感均 ≥ 100
+ *   · 六人互动额外要求"仅最后一章"
+ * 注：好感门槛以 "favorAll" 字段声明，默认 100。
+/**
+ * 判断某段互动剧情当前是否满足触发条件（V4 §七）：
+ *   · 所有参与角色均已解锁
+ *   · 所有参与角色好感均 ≥ 60（V4 已从 100 下调）
+ * 好感门槛以 "favorAll" 字段声明，默认 60。
+ *
+ * ★ V4 变更：文档已取消「雪落清晏」「失窃的账本」两段六人互动，
+ *   因此不再需要 lastChapterOnly（仅最后一章）判定；此处保留对未知字段的
+ *   忽略处理，避免旧存档或外部数据带入该字段时报错。
+ */
+function interactStoryReady(def) {
+    if (!def || !Array.isArray(def.chars) || !def.chars.length) return false;
+    const need = safeNum(def.favorAll, 60);
+    const okChars = def.chars.every(cid => {
+        const c = getChar(cid);
+        return !!(c && c.unlocked && safeNum(c.favor, 0) >= need);
+    });
+    if (!okChars) return false;
+    return true;
+}
+
+/** 所有可触发的互动剧情（满足条件且未触发过） */
+function getAvailableInteractStories() {
+    ensureInteractState();
+    return INTERACT_DEFS.filter(d =>
+        d && d.type === "story" && !game.interactStoryDone[d.id] && interactStoryReady(d)
+    );
+}
+
+/**
+ * ★ 最后一轮修复（文档 三、互动剧情及时触发）
+ *
+ * 原问题：互动剧情只在"日结算"这一条路径上检查，且被 canPopupToday() 拦住。
+ *   结果 —— 玩家把好感刷到 60 的当天什么都不会发生，必须等到第二天；
+ *   更糟的是"剧情图鉴/个人面板"已经显示「可解锁」，后台却没登记，
+ *   也就是文档说的"页面显示可触发、后台却永远不检查"。
+ *
+ * 现在的做法：把「检测并登记」与「播放」彻底拆开。
+ *
+ *   registerInteractStories()  —— 只负责"查条件 + 登记为待播放"，随时可调、幂等；
+ *                                 不受每日弹窗额度影响（额度只约束"何时弹"，不约束"是否登记"）。
+ *   RUNTIME.pendingInteract  —— 待播放队列（存 storyId），按固定顺序排列。
+ *   playPendingInteract()     —— 在允许播放的时机（额度可用且无其它弹窗）取一条出来播。
+ *
+ * 这样：条件一满足就立刻登记（页面与后台状态一致），额度不够就先排队，
+ *       等当前内容结束 / 次日额度重置时自动接续，不会丢失、不会重播。
+ */
+
+/** 待播放互动剧情队列（不写入存档；已完成状态靠 interactStoryDone 持久化） */
+function ensurePendingInteract() {
+    if (!RUNTIME.pendingInteract || !Array.isArray(RUNTIME.pendingInteract)) {
+        RUNTIME.pendingInteract = [];
+    }
+}
+
+/**
+ * 查条件并把新满足的互动剧情登记进待播放队列（幂等）。
+ * 可在任意时机调用：好感变化 / 角色解锁 / 章节推进 / 剧情结束 / 日结 / 读档 / 进入面板。
+ * 不消耗每日额度 —— 额度只在真正播放时占用。
+ * @returns {Array} 本次新登记的互动剧情 id
+ */
+function registerInteractStories() {
+    ensureInteractState();
+    ensurePendingInteract();
+    const added = [];
+    let avail = [];
+    try {
+        avail = getAvailableInteractStories();
+    } catch (e) {
+        console.warn("互动剧情条件检查异常", e);
+        return added;
+    }
+    if (!avail.length) return added;
+
+    // 固定、可预测的顺序：参与人数由少到多；同人数按声明顺序（sort 稳定）
+    avail.sort((a, b) => safeNum(a.chars.length, 9) - safeNum(b.chars.length, 9));
+
+    avail.forEach(d => {
+        if (!d || !d.id) return;
+        if (RUNTIME.pendingInteract.indexOf(d.id) >= 0) return;   // 已在队列
+        if (game.interactStoryDone[d.id]) return;                 // 已完成
+        RUNTIME.pendingInteract.push(d.id);
+        added.push(d.id);
+    });
+    return added;
+}
+
+/**
+ * 当前"待播放"的互动剧情（供页面显示「待播放」状态，避免玩家误以为按钮失效）。
+ */
+function getPendingInteractIds() {
+    ensurePendingInteract();
+    // 已完成的从队列里剔掉（读档后可能残留）
+    RUNTIME.pendingInteract = RUNTIME.pendingInteract.filter(id => !game.interactStoryDone[id]);
+    return RUNTIME.pendingInteract.slice();
+}
+
+/**
+ * 把待播放队列里的第一条转成"可弹窗"的故事对象（不消耗队列）。
+ */
+function peekPendingInteractStory() {
+    ensureInteractState();
+    const ids = getPendingInteractIds();
+    if (!ids.length) return null;
+    const pick = INTERACT_DEFS.find(d => d && d.id === ids[0]);
+    if (!pick) { RUNTIME.pendingInteract.shift(); return null; }
+    // 再校一次条件：若期间状态变了（理论上不会回退，防御性处理）
+    if (game.interactStoryDone[pick.id] || !interactStoryReady(pick)) {
+        RUNTIME.pendingInteract.shift();
+        return null;
+    }
+    const first = getChar(pick.chars[0]) || {};
+    return {
+        charId: pick.chars[0],
+        name: first.name || "",
+        key: pick.storyKey || pick.id,
+        isInteractStory: true,
+        storyId: pick.id,
+        title: pick.title,
+        text: typeof pick.text === "function" ? pick.text() : (pick.text || ""),
+        tip: "",
+        ch: null
+    };
+}
+
+/**
+ * 尝试播放一条待播放互动剧情。
+ * 只有"每日额度可用"且"当前没有别的剧情弹窗"时才真正出队，
+ * 否则保持排队，等下一次时机。
+ * @returns {boolean} 是否已出队并进入队列
+ */
+function playPendingInteract() {
+    ensureInteractState();
+    ensurePendingInteract();
+    if (RUNTIME.storyShowing) return false;               // 有剧情正在展示
+    if (typeof canPopupToday === "function" && !canPopupToday()) return false;
+    const story = peekPendingInteractStory();
+    if (!story) return false;
+    if (typeof markPopupToday === "function") {
+        markPopupToday(POPUP_KIND.INTERACT, story.storyId);
+    }
+    RUNTIME.pendingInteract.shift();                       // 出队（已完成状态在读完时落地）
+    game.interactStoryDay = { day: safeNum(game.day, 1), ids: [story.storyId] };
+    if (typeof queueStories === "function") queueStories([story]);
+    return true;
+}
+
+/**
+ * 兼容旧调用：一次性完成"登记 → 播放"。
+ * 保留此函数是因为日结算等处原本直接调它；现在它只做转发，
+ * 真正的登记与播放分别由上面两个函数承担。
+ */
+function checkInteractStoryTriggers() {
+    registerInteractStories();
+    return RUNTIME.pendingInteract && RUNTIME.pendingInteract.length ? [peekPendingInteractStory()].filter(Boolean) : [];
+}
+
+/**
+ * ★ 最后一轮：统一的状态变化钩子。
+ *   文档 §三.2 要求的全部检查时机都汇到这里：
+ *     好感变化 / 角色解锁 / 章节推进 / 剧情播放结束 / 日结算完成 / 读档 / 新档初始化。
+ *   它只做"登记 + 尝试播放"，不改变任何现有数值逻辑。
+ *
+ *   注意：这里**不能**调用 renderAll()。renderAll 内部会 flushStoryQueue()，
+ *   把刚入队的剧情立刻弹掉，会打断调用方（如 doTalk 后的 checkStoryTriggers 流程），
+ *   导致人物剧情被"吃掉"。刷新"待播放"标记交给需要它自己的面板去做。
+ *
+ * @param {string} reason 便于调试的来源标记
+ */
+function notifyInteractCheck(reason) {
+    try {
+        registerInteractStories();
+    } catch (e) {
+        console.error("互动剧情登记异常(" + reason + ")", e);
+    }
+    // 只在"当前没有剧情在展示、且没有待播的人物/主线剧情"时才尝试播放，
+    // 避免与调用方（如 doTalk → checkStoryTriggers → queueStories）的剧情流程抢占顺序。
+    // 抢不上的话留在 RUNTIME.pendingInteract，等 flushStoryQueue 结束时自动接续。
+    try {
+        const busy = RUNTIME.storyShowing || (RUNTIME.storyQueue && RUNTIME.storyQueue.length);
+        if (!busy) playPendingInteract();
+    } catch (e) {
+        console.error("互动剧情播放异常(" + reason + ")", e);
+    }
+}
+
+/** 互动剧情读完 → 落地奖励并标记"仅一次"（写入存档） */
+function commitInteractStoryRead(story) {
+    if (!story || !story.storyId) return;
+    ensureInteractState();
+    const def = INTERACT_DEFS.find(d => d.id === story.storyId);
+    if (game.interactStoryDone[story.storyId]) return;   // 奖励只发一次
+    game.interactStoryDone[story.storyId] = true;
+    if (def) {
+        const rep = safeNum(def.rewardRep, 0);
+        if (rep > 0) addReputation(rep);
+        const chs = def.chars.map(cid => (getChar(cid) || {}).name).filter(Boolean).join("、");
+        game.notes.push(`【互动剧情】${def.title}（${chs}）已看过。` + (rep > 0 ? `名声 +${rep}。` : ""));
+        pushSeenLog("interactStory", `${def.title}：${chs}`);
+    }
+    // 从待播放队列移除，并记录当日已触发
+    ensurePendingInteract();
+    RUNTIME.pendingInteract = RUNTIME.pendingInteract.filter(id => id !== story.storyId);
+    const today = safeNum(game.day, 1);
+    if (safeNum(game.interactStoryDay.day, -1) !== today) {
+        game.interactStoryDay = { day: today, ids: [] };
+    }
+    if ((game.interactStoryDay.ids || []).indexOf(story.storyId) < 0) {
+        game.interactStoryDay.ids.push(story.storyId);
+    }
+    saveGame();
+}
+
+/** 互动剧情总览（供手记页展示） */
+function getAllInteractStoryStates() {
+    ensureInteractState();
+    ensurePendingInteract();
+    const pending = getPendingInteractIds();
+    return INTERACT_DEFS.filter(d => d && d.type === "story").map(d => {
+        const done = !!game.interactStoryDone[d.id];
+        const ready = interactStoryReady(d);
+        const isPending = !done && pending.indexOf(d.id) >= 0;
+        // ★ 最后一轮：四态明确区分（文档 §三.3）
+        //   done    已完成
+        //   pending 待播放（条件已满足、后台已登记，只等播放时机）
+        //   ready   可解锁（条件满足但尚未登记，通常只在一瞬之间）
+        //   locked  未解锁（条件未满足）
+        let state = "locked";
+        if (done) state = "done";
+        else if (isPending) state = "pending";
+        else if (ready) state = "ready";
+        return {
+            id: d.id,
+            title: d.title,
+            who: d.chars.map(cid => (getChar(cid) || {}).name || cid).join("、"),
+            n: d.chars.length,
+            done: done,
+            ready: ready,
+            pending: isPending,
+            state: state
+        };
+    });
+}
+
+/**
+ * ★ V4：取一段正式互动剧情的正文（供手记页「剧情图鉴」重看）。
+ *   互动剧情的 text 是函数 text(ctx)，正常触发时会带上当时的人物 / 客人上下文。
+ *   图鉴是只读回顾，这里用一个中性的只读上下文取一次文本；取不到就返回空串。
+ */
+function interactStoryText(storyId) {
+    const def = INTERACT_DEFS.find(d => d && d.id === storyId && d.type === "story");
+    if (!def || typeof def.text !== "function") return "";
+    try {
+        const ctx = {
+            char: def.chars && def.chars.length ? getChar(def.chars[0]) : null,
+            chars: (def.chars || []).map(cid => getChar(cid)).filter(Boolean),
+            guest: null
+        };
+        return def.text(ctx) || "";
+    } catch (e) {
+        console.warn("interactStoryText 取正文失败", storyId, e);
+        return "";
+    }
 }
 
 /** 今日已触发过的互动 ID 列表 */
@@ -5560,6 +6976,18 @@ function applyInteract(def, ctx) {
 
     let eff = {};
     try { eff = def.effect ? (def.effect(ctx) || {}) : {}; } catch (e) { console.error("互动结算异常", def.id, e); }
+
+    // ★ V40 二次修复：把互动计入对应角色的累计互动次数。
+    //   背景（用户反馈"前个剧情解锁后某个时间必定触发，或者写清触发条件"）：
+    //   人物好感剧情二/三段用 interactAtLeast 作为轻量条件，此前只有
+    //   闲谈/培养/深培/休息/茶室 5 条主动路径会累加；而接待途中的插曲、
+    //   客人寒暄、每日闲暇小剧场这些**被动互动**不计入，玩家会看到
+    //   "完成一次日常互动"却始终停在 0，误以为剧情卡死。
+    //   这里统一在被调用到 applyInteract 的所有路径上补记，条件即可稳定达成。
+    try {
+        const involved = Array.isArray(def.chars) ? def.chars : [];
+        involved.forEach(cid => { if (cid) bumpCharInteract(cid); });
+    } catch (e) { /* 计数失败不影响互动本身 */ }
 
     // 冷却与计数
     const cd = safeNum(def.cooldown, 0);
@@ -6858,9 +8286,24 @@ function hideModal(maskId) {
     if (m) m.classList.add("mask-hidden");
 }
 
+/**
+ * 是否有任意弹窗正显示在屏幕上（用于判断"现在弹教程合不合适"）。
+ * 教程自身的遮罩不算，避免自我阻塞。
+ */
+function isAnyModalOpen(exceptId) {
+    const ids = ["globalMask", "guestMask", "trainMask", "recepMask", "storyMask",
+                 "meetConfirmMask", "meetSceneMask", "helpMask", "tutorialMask"];
+    return ids.some(id => {
+        if (exceptId && id === exceptId) return false;
+        const el = document.getElementById(id);
+        return el && !el.classList.contains("mask-hidden");
+    });
+}
+
 /** 关闭所有弹窗 */
 function hideAllModals() {
-    ["globalMask", "guestMask", "trainMask", "recepMask", "storyMask", "meetConfirmMask"].forEach(hideModal);
+    ["globalMask", "guestMask", "trainMask", "recepMask", "storyMask",
+     "meetConfirmMask", "meetSceneMask", "helpMask", "tutorialMask"].forEach(hideModal);
 }
 
 /* ---------- 经营状态提示（V37 P1-1） ---------- */
@@ -6998,50 +8441,97 @@ function showTrainPanel(charId) {
 
 /* ---------- 15. 个人故事面板 ---------- */
 
+/**
+ * ★ V4：个人好感剧情面板（每段可折叠）
+ *   背景：V4 把每段剧情从"一句话梗概"扩写成完整正文（每段 200~400 字），
+ *   十段全展开会让手机端要滑很久。所以改为「默认只显示段名 + 状态 + 展开箭头」，
+ *   点标题行才展开正文或条件清单（逐段点击展开/收起）。
+ */
 function showStoryPanel(charId) {
     const ch = getChar(charId);
     if (!ch || !ch.unlocked) return;
-    RUNTIME.expandedStory[charId] = true;
+    // ★ 最后一轮（文档 §三.2 末条）：进入剧情页面时补做一次条件检查作为兜底，
+    //   但不能把它当作唯一检查时机 —— 真正的检查点分散在好感变化/解锁/日结等各处。
+    try {
+        if (typeof registerInteractStories === "function") registerInteractStories();
+    } catch (e) { console.error("面板兜底检查异常", e); }
     const order = STORY_KEYS;
     const mask = document.getElementById("storyMask");
     document.getElementById("stModTitle").innerText = `个人故事｜${ch.name}`;
     const descEl = document.getElementById("stModDesc");
     descEl.innerHTML = "";
 
+    // 默认展开的那一段：最新解锁但还没读的（玩家最关心的），否则全部收起
+    let autoOpen = null;
+    for (let i = order.length - 1; i >= 0; i--) {
+        const st0 = getStoryState(ch, order[i]);
+        if (st0.state === STORY_STATE.COMPLETED && !RUNTIME.expandedStory[charId + ":" + order[i]]) {
+            autoOpen = order[i]; break;   // 最近读过的
+        }
+    }
+
     const doneCount = order.filter(k => isStoryDone(ch, k)).length;
     const queuedCount = order.filter(k => isStoryQueued(ch, k) && !isStoryDone(ch, k)).length;
+    const availCount = order.filter(k => getStoryState(ch, k).state === STORY_STATE.AVAILABLE).length;
     const head = document.createElement("div");
     head.className = "pv-box";
-    head.innerHTML = '<div class="pv-line">已解锁 <b>' + doneCount + ' / ' + STORY_KEYS.length + '</b>'
+    head.innerHTML = '<div class="pv-line">已读 <b>' + doneCount + ' / ' + STORY_KEYS.length + '</b>'
         + (queuedCount ? '　<span class="tag tag-orange">待阅读 ' + queuedCount + '</span>' : '')
+        + (availCount ? '　<span class="tag tag-orange">可解锁 ' + availCount + '</span>' : '')
         + '　好感 <b>' + formatStat(ch.favor) + '</b> / 100</div>'
-        + '<div class="pv-line pv-sub">已阅读段落可展开回顾；「待阅读」表示条件已满足、等待弹出；未解锁段落列出各项条件与当前进度。</div>';
+        + '<div class="pv-line pv-sub">点击段落标题可展开 / 收起正文。灰色「未解锁」段落展开后是解锁条件与当前进度。</div>';
+
+    const tools = document.createElement("div");
+    tools.className = "story-tools";
+    const btnAll = document.createElement("button");
+    btnAll.className = "btn btn-xs btn-gray";
+    btnAll.innerText = "全部展开";
+    const btnNone = document.createElement("button");
+    btnNone.className = "btn btn-xs btn-gray";
+    btnNone.innerText = "全部收起";
+    tools.appendChild(btnAll);
+    tools.appendChild(btnNone);
+    head.appendChild(tools);
     descEl.appendChild(head);
+
+    const bodyEls = [];   // {key, el, wrap}
 
     order.forEach(k => {
         const st = getStoryState(ch, k);
         const block = document.createElement("div");
-        block.className = "story-block";
+        block.className = "story-block story-fold";
+
+        // —— 标题行（可点击）——
         const title = document.createElement("div");
-        title.className = "story-title";
-        title.innerText = storyTitle(ch, k);
+        title.className = "story-fold-head";
+        const arrow = document.createElement("span");
+        arrow.className = "story-fold-arrow";
+        arrow.innerText = "▸";
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "story-fold-name";
+        nameSpan.innerText = (order.indexOf(k) + 1) + "．" + storyTitle(ch, k);
 
         if (st.state === STORY_STATE.COMPLETED) {
-            title.innerHTML += ' <span class="tag tag-green">已阅读</span>';
+            nameSpan.innerHTML += ' <span class="tag tag-green">已读</span>';
         } else if (st.state === STORY_STATE.QUEUED) {
-            title.innerHTML += ' <span class="tag tag-orange">已解锁待阅读</span>';
+            nameSpan.innerHTML += ' <span class="tag tag-orange">已解锁待阅读</span>';
         } else if (st.state === STORY_STATE.AVAILABLE) {
-            title.innerHTML += ' <span class="tag tag-orange">可解锁（排队中）</span>';
+            nameSpan.innerHTML += ' <span class="tag tag-orange">可解锁（排队中）</span>';
         } else {
-            title.innerHTML += ' <span class="tag tag-lock">未解锁</span>';
+            nameSpan.innerHTML += ' <span class="tag tag-lock">未解锁</span>';
         }
+        title.appendChild(arrow);
+        title.appendChild(nameSpan);
         block.appendChild(title);
 
+        // —— 内容区（默认隐藏）——
+        const wrap = document.createElement("div");
+        wrap.className = "story-fold-body";
         if (st.state === STORY_STATE.COMPLETED) {
             const body = document.createElement("div");
             body.className = "story-body";
             body.innerText = (ch.storyTexts || {})[k] || "";
-            block.appendChild(body);
+            wrap.appendChild(body);
         } else {
             // 剧情诊断：逐项列出条件、当前值、缺项
             const d = st.detail || { items: [] };
@@ -7054,16 +8544,49 @@ function showStoryPanel(charId) {
                     + (it.need > 1 || /达到|累计|接待|级|次|章|两/.test(it.text) ? `（当前 ${formatStat(it.cur)}）` : "");
                 list.appendChild(row);
             });
-            block.appendChild(list);
+            wrap.appendChild(list);
             if (st.state === STORY_STATE.AVAILABLE || st.state === STORY_STATE.QUEUED) {
                 const hint = document.createElement("div");
                 hint.className = "small-text";
-                hint.innerText = "条件已全部满足，将在下一段剧情中弹出。";
-                block.appendChild(hint);
+                hint.innerText = st.state === STORY_STATE.QUEUED
+                    ? "已解锁，看完当前剧情后即会弹出。"
+                    : "条件已全部满足，本段剧情将在下次结算时必定弹出；也可先看完前面已解锁的段落。";
+                wrap.appendChild(hint);
+            } else {
+                // ★ V40 二次修复：明确告诉玩家「缺什么、怎么补」以及满足后会发生什么，
+                //   避免"等半天不触发"的困惑（用户反馈：要保证必定触发，或写清触发条件）
+                const lack = (d.items || []).filter(x => !x.ok);
+                if (lack.length) {
+                    const tip2 = document.createElement("div");
+                    tip2.className = "small-text";
+                    tip2.innerText = `还差 ${lack.length} 项：${lack.map(x => x.text).join("；")}。`
+                        + "全部满足后，剧情会在下一次结算时必定弹出。";
+                    wrap.appendChild(tip2);
+                }
             }
         }
+        block.appendChild(wrap);
+
+        // 打开状态：这一段是否展开
+        const openKey = charId + ":" + k;
+        let opened = !!RUNTIME.expandedStory[openKey];
+        if (autoOpen === k) opened = true;          // 只有"最近阅读"的一段默认展开
+        const setOpen = (v) => {
+            opened = v;
+            RUNTIME.expandedStory[openKey] = v;
+            wrap.style.display = v ? "" : "none";
+            arrow.innerText = v ? "▾" : "▸";
+            block.classList.toggle("story-fold-open", v);
+        };
+        title.onclick = () => setOpen(!opened);
+        setOpen(opened);
+
+        bodyEls.push({ key: k, setOpen });
         descEl.appendChild(block);
     });
+
+    btnAll.onclick = () => bodyEls.forEach(b => b.setOpen(true));
+    btnNone.onclick = () => bodyEls.forEach(b => b.setOpen(false));
 
     const wrap = document.getElementById("stModBtns");
     wrap.innerHTML = "";
@@ -7103,12 +8626,30 @@ function describeStoryCond(ch, key, t) {
                     oldScroll: "发现旧画卷", oldBook: "查到旧账本",
                     xieOldDream: "倾听谢临川的旧梦"
                 };
-                parts.push(names[c.key] || `触发事件：${c.key}`);
+                // ★ V40：不再回退显示内部变量名（文档 §二/§五 明确禁止把 flag 拼到 UI），
+                //   也不再使用"经历一段与其相关的往事"这类含糊说法（用户反馈看不懂触发条件）
+                parts.push(names[c.key] || "完成对应的往事互动（详见该段剧情提示）");
+                break;
+            }
+            // ★ V40 新增：与 checkCondition 中新增的轻量条件一一对应
+            case "interactAtLeast": {
+                const c2 = c.key ? getChar(c.key) : null;
+                const n = c.key ? getCharInteract(c.key) : 0;
+                parts.push(`与${c2 ? c2.name : "他"}完成一次日常互动（当前 ${formatStat(n)} 次）`);
+                break;
+            }
+            case "metChar": {
+                const c3 = getChar(c.key);
+                parts.push(c3 ? `已结识${c3.name}` : "已结识该角色");
                 break;
             }
             case "chapter": parts.push(`推进到第 ${c.val} 章`); break;
+            case "chapterAtLeast": parts.push(`推进到第 ${c.val} 章`); break;
             case "time": parts.push("在夜间时段"); break;
-            default: parts.push("满足特定条件");
+            case "totalReception": parts.push(`累计接待 ≥ ${c.val} 位客人（当前 ${formatStat(safeNum(game.totalReception, 0))}）`); break;
+            case "repAtLeast": parts.push(`名声 ≥ ${c.val}（当前 ${formatStat(safeNum(game.reputation, 0))}）`); break;
+            // ★ V40：兜底不再暴露内部条件名，统一显示自然中文
+            default: parts.push("满足相关条件");
         }
     });
     return parts.join("；");
@@ -7722,16 +9263,20 @@ function renderCharPage() {
                 const unlockCount = order.filter(k => isStoryDone(c, k)).length;
                 const prefNames = (c.preferences || []).map(k => tagName(k));
                 const fat = safeNum(c.fatigue, 0);
-                const fatigueTag = fat >= 100
+                // ★ V2.1 §七：生病/休养中要给明显标识；过度疲劳持续显示标签
+                const sickTag = isSick(c) ? '<span class="tag tag-red">生病 / 休养中</span>' : '';
+                const fatigueTag = sickTag || (fat >= 100
                     ? '<span class="tag tag-red">需休息</span>'
-                    : (fat >= CONFIG.FATIGUE_HIGH_THRESHOLD ? '<span class="tag tag-orange">倦意偏高</span>' : '');
+                    : (fat >= 80
+                        ? '<span class="tag tag-orange">过度疲劳</span>'
+                        : (fat >= CONFIG.FATIGUE_HIGH_THRESHOLD ? '<span class="tag tag-orange">倦意偏高</span>' : '')));
                 // 轻互动（0 行动力）每人每日 1 次
                 const rested = charDailyUsed("rest", c.id);
                 const talked = charDailyUsed("talk", c.id);
-                const canRest = !rested && fat > 0;
+                const canRest = !rested && (fat > 0 || isSick(c));
                 const canTalk = !talked;
                 const hasChashi = (game.buildingList || []).some(b => b.id === "chashi" && safeNum(b.level, 0) > 0);
-                const canTea = hasChashi && getTeaRestCount() < 2 && fat > 0
+                const canTea = hasChashi && getTeaRestCount() < 2 && (fat > 0 || isSick(c))
                     && safeNum((game.stock || {}).huacha, 0) >= 2;
                 div.innerHTML =
                     '<div class="guest-head">'
@@ -7755,6 +9300,11 @@ function renderCharPage() {
                     + '</div>'
                     + '<div class="stock-row"><span class="stock-name">好感</span><span class="stock-val">' + formatStat(c.favor) + ' / 100</span></div>'
                     + '<div class="stock-row"><span class="stock-name">倦意</span><span class="stock-val">' + formatStat(c.fatigue) + ' / 100（' + fatigueLabel(safeNum(c.fatigue, 0)) + '）</span></div>'
+                    // ★ V2.1 §六/§七：生病状态说明（自然中文，不暴露内部字段）
+                    + (isSick(c)
+                        ? '<div class="stock-row"><span class="stock-name">状态</span><span class="stock-val" style="color:#c0392b;">生病休养中 · 今日无法参与雅馆经营</span></div>'
+                          + '<div class="small-text">可用「休息」或「茶室调养」帮助恢复；倦意降到 60 以下即痊愈。</div>'
+                        : '')
                     // ★ V37 P1-2：个人名声给档位，并说明"作用于邀约权重/豪客指名/专属剧情，不加基础收益"
                     + '<div class="stock-row"><span class="stock-name">个人名声</span><span class="stock-val">'
                         + formatStat(c.fame) + '　<span class="tag tag-' + (getFameTier(c).color === "lock" ? "lock" : (getFameTier(c).color === "green" ? "green" : "orange")) + '">'
@@ -7939,12 +9489,34 @@ function renderStockPage() {
 
         const marketBox = document.getElementById("marketBox");
         marketBox.innerHTML = "";
-        goodsData.forEach(gd => {
-            const realPrice = Math.floor(safeNum(gd.basePrice, 30) * safeNum(game.priceMod[gd.id], 1));
-            const cheap = safeNum(game.priceMod[gd.id], 1) < 0.95;
+        // ★ 最后一轮：确保当日价格已生成（同一天只生成一次，切页/重渲染不变）
+        ensureMarketPriceToday();
+        // 汇总当日涨跌，给一句整体提示
+        const trends = goodsData.map(gd => ({ gd: gd, t: getPriceTrend(gd.id) }));
+        const nUp = trends.filter(x => x.t.dir === "up").length;
+        const nDown = trends.filter(x => x.t.dir === "down").length;
+        const nFlat = trends.filter(x => x.t.dir === "flat").length;
+        const sum = document.createElement("div");
+        sum.className = "small-text";
+        sum.style.margin = "0 0 6px";
+        sum.innerText = "今日市价：" + nUp + " 项上涨、" + nDown + " 项下跌、" + nFlat + " 项持平"
+            + "。同日价格不变，跨日后才会重新波动。";
+        marketBox.appendChild(sum);
+
+        trends.forEach(({ gd, t }) => {
+            const realPrice = t.price;
+            const dirTxt = t.dir === "up" ? "↑ 涨" : (t.dir === "down" ? "↓ 跌" : "— 持平");
+            const dirCls = t.dir === "up" ? "price-up" : (t.dir === "down" ? "price-down" : "price-flat");
+            // 涨跌幅为 0 时不显示百分比，避免"持平 0%"的噪音
+            const pctTxt = (t.dir !== "flat" && t.pct > 0) ? " " + t.pct + "%" : "";
             const row = document.createElement("div");
-            row.className = "stock-row";
-            row.innerHTML = '<span class="stock-name">' + gd.name + '<span class="stock-val" style="margin-left:8px;' + (cheap ? "color:var(--ok);" : "") + '">单价 ' + formatStat(realPrice) + '</span></span>';
+            row.className = "stock-row market-row";
+            row.innerHTML = '<span class="stock-name">' + gd.name
+                + '<span class="stock-val" style="margin-left:8px;">单价 ' + formatStat(realPrice) + '</span>'
+                + '<span class="price-dir ' + dirCls + '" data-dir="' + t.dir + '">'
+                + dirTxt + pctTxt + '</span>'
+                + '<span class="stock-val market-base">（基础 ' + formatStat(gd.basePrice) + '）</span>'
+                + '</span>';
             const btn = document.createElement("button");
             btn.className = "btn btn-secondary btn-xs buyGoods";
             btn.innerText = "购入 10";
@@ -8003,6 +9575,143 @@ function renderBuildPage() {
             box.appendChild(div);
         });
     } catch (e) { console.error("renderBuildPage异常", e); }
+}
+
+/**
+ * ★ V4 新增：剧情图鉴。
+ *   把个人好感剧情（30 段）、双人互动（15 段）、三人互动（3 段）汇总成一份"图鉴"：
+ *   已读的可以直接展开重读，可解锁的高亮提示，未解锁的只显示段名与涉及角色（不剧透）。
+ *   数据来自 getAllStoryStates()（个人）与 getAllInteractStoryStates()（互动）。
+ *   全部用中文展示，不出现任何内部 ID。
+ */
+function buildStoryCodex() {
+    const box = document.createElement("div");
+    box.className = "story-block";
+
+    // ---- 个人好感剧情 ----
+    const pStates = getAllStoryStates();
+    const pDone = pStates.filter(s => s.state === STORY_STATE.COMPLETED).length;
+
+    // ---- 正式互动剧情 ----
+    // getAllInteractStoryStates() 返回 {id,title,who,n,done,ready}
+    let iStates = [];
+    try { iStates = getAllInteractStoryStates() || []; } catch (e) { iStates = []; }
+    const two = iStates.filter(s => safeNum(s.n, 0) === 2);
+    const three = iStates.filter(s => safeNum(s.n, 0) >= 3);
+    const iDone = iStates.filter(s => s.done).length;
+
+    const total = pStates.length + iStates.length;
+    const doneAll = pDone + iDone;
+
+    box.innerHTML = '<div class="story-title">剧情图鉴</div>'
+        + '<div class="small-text">已收集 <b>' + doneAll + ' / ' + total + '</b>　'
+        + '个人剧情 ' + pDone + '/' + pStates.length
+        + '　双人互动 ' + two.filter(s => s.done).length + '/' + two.length
+        + '　三人互动 ' + three.filter(s => s.done).length + '/' + three.length
+        + '</div>'
+        + '<div class="small-text" style="margin-top:4px;">点已读的条目可以展开重看正文；未解锁的条目只显示段名与涉及人物。</div>';
+
+    // 一个通用行渲染器
+    const renderRow = (title, whoText, stateText, cls, bodyText) => {
+        const row = document.createElement("div");
+        row.className = "codex-row " + cls;
+        const nm = document.createElement("div");
+        nm.className = "codex-name";
+        nm.innerHTML = title + (whoText ? '<span class="codex-who">（' + whoText + '）</span>' : "");
+        row.appendChild(nm);
+        const tg = document.createElement("span");
+        tg.className = "tag " + (cls === "codex-done" ? "tag-green"
+            : cls === "codex-pending" ? "tag-blue2"
+            : cls === "codex-open" ? "tag-orange" : "tag-lock");
+        tg.innerText = stateText;
+        row.appendChild(tg);
+
+        if (!bodyText) return row;
+
+        const body = document.createElement("div");
+        body.className = "codex-body";
+        body.style.display = "none";
+        body.innerText = bodyText;
+        let open = false;
+        row.style.cursor = "pointer";
+        row.onclick = () => {
+            open = !open;
+            body.style.display = open ? "" : "none";
+            if (open) row.after(body); else body.remove();
+        };
+        const frag = document.createDocumentFragment();
+        frag.appendChild(row);
+        return frag;
+    };
+
+    // —— 个人好感剧情：按角色分组 ——
+    const g1 = document.createElement("div");
+    g1.className = "codex-group";
+    g1.innerHTML = '<div class="codex-sub">个人好感剧情（' + pDone + '/' + pStates.length + '）</div>';
+    game.characterList.forEach(c => {
+        if (!c.unlocked) return;
+        const mine = pStates.filter(s => s.charId === c.id);
+        if (!mine.length) return;
+        const sub = document.createElement("div");
+        sub.className = "codex-sub";
+        sub.innerText = c.name;
+        g1.appendChild(sub);
+        mine.forEach(s => {
+            const isDone = s.state === STORY_STATE.COMPLETED;
+            const isOpen = s.state === STORY_STATE.AVAILABLE || s.state === STORY_STATE.QUEUED;
+            const bodyText = isDone ? ((c.storyTexts || {})[s.key] || "") : "";
+            const row = renderRow(
+                (STORY_KEYS.indexOf(s.key) + 1) + "．" + s.title,
+                "",
+                isDone ? "已读" : (s.state === STORY_STATE.QUEUED ? "待阅读" : (s.state === STORY_STATE.AVAILABLE ? "可解锁" : "未解锁")),
+                isDone ? "codex-done" : (isOpen ? "codex-open" : "codex-locked"),
+                bodyText
+            );
+            g1.appendChild(row);
+        });
+    });
+    if (!g1.querySelector(".codex-row")) {
+        const d = document.createElement("div");
+        d.className = "small-text tag-lock";
+        d.innerText = "尚未结识任何人物，结识后此处会列出各自的剧情。";
+        g1.appendChild(d);
+    }
+    box.appendChild(g1);
+
+    // —— 双人互动 / 三人互动 ——
+    const g2 = document.createElement("div");
+    g2.className = "codex-group";
+    g2.innerHTML = '<div class="codex-sub">正式互动剧情（' + iDone + '/' + iStates.length + '）</div>';
+
+    const addGroup = (list, label) => {
+        if (!list.length) return;
+        const sub = document.createElement("div");
+        sub.className = "codex-sub";
+        sub.innerText = label + "（" + list.filter(s => s.done).length + "/" + list.length + "）";
+        g2.appendChild(sub);
+        list.forEach(s => {
+            const isDone = !!s.done;
+            const isPending = !!s.pending;
+            // 互动正文存放在 INTERACT_DEFS 的 text(ctx) 里（是函数），已读时按只读上下文取一次
+            let bodyText = "";
+            if (isDone) { try { bodyText = interactStoryText(s.id); } catch (e) { bodyText = ""; } }
+            // ★ 最后一轮：四态明确区分，避免"显示可触发却不弹"的困惑
+            const stateTxt = isDone ? "已读" : (isPending ? "待播放" : (s.ready ? "可触发" : "未解锁"));
+            const cls = isDone ? "codex-done" : (isPending ? "codex-pending" : (s.ready ? "codex-open" : "codex-locked"));
+            g2.appendChild(renderRow(s.title || "（未命名）", s.who || "", stateTxt, cls, bodyText));
+        });
+    };
+    addGroup(two, "双人互动");
+    addGroup(three, "三人互动");
+
+    if (!g2.querySelector(".codex-row")) {
+        const d = document.createElement("div");
+        d.className = "small-text tag-lock";
+        d.innerText = "结识人物、提升好感后，正式互动会陆续开放。";
+        g2.appendChild(d);
+    }
+    box.appendChild(g2);
+    return box;
 }
 
 function renderNotePage() {
@@ -8084,29 +9793,8 @@ function renderNotePage() {
         }
         box.appendChild(chapWrap);
 
-        // 已解锁的个人故事
-        const storyWrap = document.createElement("div");
-        storyWrap.className = "story-block";
-        storyWrap.innerHTML = `<div class="story-title">人物故事回顾</div>`;
-        let has = false;
-        game.characterList.forEach(c => {
-            if (!c.unlocked) return;
-            STORY_KEYS.forEach(k => {
-                if (!isStoryDone(c, k)) return;
-                has = true;
-                const d = document.createElement("div");
-                d.className = "note-item";
-                d.innerText = (c.storyTexts || {})[k] || "";
-                storyWrap.appendChild(d);
-            });
-        });
-        if (!has) {
-            const d = document.createElement("div");
-            d.className = "small-text tag-lock";
-            d.innerText = "尚未解锁任何个人故事。提升好感并完成对应行为后可解锁。";
-            storyWrap.appendChild(d);
-        }
-        box.appendChild(storyWrap);
+        // ★ V4 剧情图鉴：已解锁 / 未解锁的剧情一览（个人好感 30 段 + 双人互动 15 段 + 三人互动 3 段）
+        box.appendChild(buildStoryCodex());
 
         // V37 剧情诊断：每段故事的条件、当前值、缺项一览
         const diagWrap = document.createElement("div");
@@ -8139,7 +9827,8 @@ function renderNotePage() {
                     s.state === STORY_STATE.QUEUED ? '<span class="tag tag-orange">待阅读</span>' :
                     s.state === STORY_STATE.AVAILABLE ? '<span class="tag tag-orange">可解锁</span>' :
                     '<span class="tag tag-lock">未解锁</span>';
-                let html = '<div class="diag-head"><span class="diag-name">' + s.name + '·' + s.key.toUpperCase()
+                // ★ V40：不再拼接内部 key（S1/S2…），改用剧情真实标题
+                let html = '<div class="diag-head"><span class="diag-name">' + s.title
                     + '</span>' + stateTag + '</div>';
                 if (s.state !== STORY_STATE.COMPLETED) {
                     (s.detail.items || []).forEach(it => {
@@ -8358,6 +10047,76 @@ function mountPageHelpBtn(pageId) {
     pageEl.insertBefore(btn, pageEl.firstChild);
 }
 
+/* ---------- 18.5 新手教程（最后一轮新增） ---------- */
+
+/**
+ * 新手教程正文。要求（文档·最后一轮）：
+ *   · 用最简单的话把「玩法流程」讲清楚，别用术语；
+ *   · 开场剧情弹窗关闭后自动出现一次；
+ *   · 顶部常驻「教程」按钮，随时可重看；
+ *   · 只看不改状态，纯展示层。
+ */
+const TUTORIAL_ROWS = [
+    ["你是谁", "你是<b>清晏雅馆的馆主</b>。馆子荒废多年，你要把它重新经营起来。"],
+    ["每天做什么", "每天分<b>早晨 / 午后 / 夜晚</b>三个时段。进「<b>接待</b>」页安排雅士接客——这是主要收入来源；" +
+        "进「<b>人物</b>」页找雅士聊天、训练，提升好感与本事。注意<b>行动力</b>用完当天就不能再做事了。"],
+    ["记得补物资", "接待会消耗琴谱、宣纸、花材、酒、香、茶等物资。去「<b>物资</b>」页的<b>市集</b>进货。" +
+        "每天市价都会波动，涨跌会标出来——<b>便宜时多囤，贵时少买</b>。"],
+    ["越经营越热闹", "随着名声与接待量提升，会陆续<b>解锁新的雅士和客人</b>，还能在「<b>建造</b>」页" +
+        "升级馆内场地，提高接待的加成与规模。"],
+    ["别错过剧情", "好感够了、条件达成了，会弹出<b>人物剧情 / 互动剧情</b>，看完有奖励，也推进主线。" +
+        "进度都记在「<b>手记</b>」页，随时回看。"],
+    ["一天结束", "手上事做完，回「雅馆」页点<b>结束今日营业</b>结算，进入下一天。"],
+    ["卡住了怎么办", "每页右上角有「<b>? 机制</b>」按钮，讲这一页的具体规则；顶部的「<b>教程</b>」按钮随时能再打开这一页。"]
+];
+
+/** 教程是否已看过（独立字段，不与存档版本耦合） */
+function isTutorialSeen() {
+    try { return !!(game && game.tutorialSeen); } catch (e) { return true; }
+}
+
+/** 标记教程已看过并落盘 */
+function markTutorialSeen() {
+    try {
+        if (!game) return;
+        game.tutorialSeen = true;
+        if (typeof saveGame === "function") saveGame();
+    } catch (e) { console.error("教程标记写入异常", e); }
+}
+
+/** 打开新手教程面板（幂等，可反复打开；不会改动游戏进度） */
+function openTutorial(fromAuto) {
+    const body = TUTORIAL_ROWS.map(row =>
+        '<div class="help-row"><div class="help-h">' + row[0] + '</div>'
+        + '<div class="help-b">' + row[1] + '</div></div>'
+    ).join("");
+    const html = '<div class="help-wrap">' + body + '</div>';
+    showModal("tutorialMask", "tutTitle", "tutDesc", "tutBtns", "怎么玩 · 三步上手", "", [
+        { text: fromAuto ? "知道了，开始经营" : "知道了", cls: "btn-primary", fn: () => {
+            hideModal("tutorialMask");
+            markTutorialSeen();
+        } }
+    ]);
+    const desc = document.getElementById("tutDesc");
+    if (desc) desc.innerHTML = html;
+    // 自动弹出（开场剧情后）也记为已看，避免每次进游戏都弹
+    if (fromAuto) markTutorialSeen();
+}
+
+/**
+ * 开场剧情关闭后的自动教程入口。
+ * 只在「教程没看过」且「当前没有别的弹窗占着屏幕」时才弹，避免和开场剧情打架。
+ */
+function maybeShowTutorialAfterOpening() {
+    try {
+        if (isTutorialSeen()) return false;
+        // 还有别的遮罩在展示（例如开场剧情本身）→ 不抢，交给下次时机
+        if (typeof isAnyModalOpen === "function" && isAnyModalOpen()) return false;
+        openTutorial(true);
+        return true;
+    } catch (e) { console.error("新手教程弹出异常", e); return false; }
+}
+
 /* ---------- 19. 页面切换与总渲染 ---------- */
 
 function switchPage(pageId) {
@@ -8401,6 +10160,7 @@ document.addEventListener("click", function (e) {
         const id = btn.id;
 
         /* --- 顶部按钮 --- */
+        if (id === "btnTutorial") { openTutorial(false); return; }
         if (id === "btnSave") { saveGame(); toast("已手动存档。"); return; }
         if (id === "btnReset") { resetGame(); return; }
         if (id === "btnDevClearStorage") { devClearStorage(); return; }
